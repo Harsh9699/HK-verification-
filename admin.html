@@ -25,10 +25,46 @@
   .msg{ font-family:'Courier New',monospace; font-size:12px; margin-top:12px; white-space:pre-wrap; word-break:break-word; }
   .msg.err{ color:#c0392b; } .msg.ok{ color:var(--teal); }
   #app{ display:none; }
-  .out{ margin-top:26px; border-top:1px solid var(--gold); padding-top:20px; display:none;}
-  .out img{ display:block; margin:10px 0; border:1px solid #ddd;}
+  .out{ margin-top:26px; display:none;}
   .out a{ font-family:'Courier New',monospace; font-size:12px; color:var(--navy); word-break:break-all;}
-  .certid-display{ font-family:'Courier New',monospace; font-size:13px; color:var(--muted); }
+  .printBtn{ background:var(--gold); }
+  .printBtn:hover{ background:#a07f34; }
+
+  /* Printable certificate */
+  #certificate{ width:1123px; height:794px; background:var(--paper); position:relative; box-shadow:0 20px 60px rgba(0,0,0,.45); margin:24px auto; transform-origin:top left; }
+  #certificate svg.corner{position:absolute; width:90px; height:90px;}
+  #certificate .corner.tl{top:-2px; left:-2px;}
+  #certificate .corner.tr{top:-2px; right:-2px; transform:scaleX(-1);}
+  #certificate .corner.bl{bottom:-2px; left:-2px; transform:scaleY(-1);}
+  #certificate .corner.br{bottom:-2px; right:-2px; transform:scale(-1,-1);}
+  #certificate .inner{ position:absolute; inset:48px; border:1px solid var(--gold); padding:46px 64px; display:flex; flex-direction:column; align-items:center; text-align:center;}
+  #certificate .brandrow{ display:flex; align-items:center; gap:12px; margin-bottom:6px;}
+  #certificate .monogram{ width:44px; height:44px; border-radius:50%; background:var(--navy); color:var(--paper); font-family:'Courier New',monospace; font-weight:bold; font-size:17px; display:flex; align-items:center; justify-content:center; letter-spacing:0.5px;}
+  #certificate .brandname{ font-family:'Courier New',monospace; font-size:14px; letter-spacing:3px; color:var(--navy); text-transform:uppercase;}
+  #certificate .eyebrow{ font-family:'Courier New',monospace; font-size:12px; letter-spacing:4px; color:var(--teal); text-transform:uppercase; margin-top:22px;}
+  #certificate h2.title{ font-size:40px; color:var(--navy); margin:8px 0 2px 0; font-weight:normal; letter-spacing:1px;}
+  #certificate .subtitle{ font-size:14px; color:var(--muted); font-style:italic; margin-bottom:26px;}
+  #certificate .presented-to{ font-family:'Courier New',monospace; font-size:11px; letter-spacing:3px; color:var(--muted); text-transform:uppercase;}
+  #certificate .studentname{ font-size:46px; color:var(--ink); margin:6px 0 14px 0; border-bottom:1px solid var(--gold); padding:0 20px 10px 20px; min-width:520px;}
+  #certificate .desc{ font-size:15px; color:var(--ink); max-width:640px; line-height:1.7; margin-bottom:10px;}
+  #certificate .desc b{color:var(--navy);}
+  #certificate .skills{ font-family:'Courier New',monospace; font-size:12px; color:var(--teal); letter-spacing:0.5px; max-width:680px; line-height:1.9; margin-bottom:24px;}
+  #certificate .bottom{ width:100%; display:flex; justify-content:space-between; align-items:flex-end; margin-top:auto; padding-top:10px;}
+  #certificate .block{ text-align:center; min-width:190px;}
+  #certificate .block .line{ border-top:1px solid var(--ink); margin-bottom:6px; padding-top:6px;}
+  #certificate .block .label{ font-family:'Courier New',monospace; font-size:10px; letter-spacing:2px; color:var(--muted); text-transform:uppercase;}
+  #certificate .block .value{ font-size:16px; color:var(--ink);}
+  #certificate .qrblock{ display:flex; flex-direction:column; align-items:center; gap:6px;}
+  #certificate .qrblock img{ width:70px; height:70px;}
+  #certificate .qr-label{ font-family:'Courier New',monospace; font-size:9px; letter-spacing:1px; color:var(--muted); text-align:center;}
+  #certificate .certid{ position:absolute; bottom:60px; left:64px; font-family:'Courier New',monospace; font-size:10px; letter-spacing:1px; color:var(--muted);}
+
+  @media print{
+    body *{ visibility:hidden; }
+    #certificate, #certificate *{ visibility:visible; }
+    #certificate{ position:fixed; top:0; left:0; margin:0; box-shadow:none; }
+    @page{ size:landscape; margin:0; }
+  }
 </style>
 </head>
 <body>
@@ -66,9 +102,57 @@
   <div class="msg" id="genMsg"></div>
 
   <div class="out" id="out">
-    <div class="certid-display">Certificate ID: <b id="certIdShow"></b></div>
-    <img id="qrImg" width="180" height="180" alt="QR code">
     <a id="verifyLink" target="_blank"></a>
+    <button type="button" class="printBtn" id="printBtn">🖨 Print / Save as PDF</button>
+
+    <div id="certificate">
+      <svg class="corner tl" viewBox="0 0 90 90"><circle cx="8" cy="8" r="4" fill="#152238"/><line x1="8" y1="8" x2="60" y2="8" stroke="#152238" stroke-width="1.5"/><line x1="8" y1="8" x2="8" y2="60" stroke="#152238" stroke-width="1.5"/><circle cx="60" cy="8" r="3" fill="#B8923E"/><circle cx="8" cy="60" r="3" fill="#B8923E"/><line x1="8" y1="8" x2="34" y2="34" stroke="#2F6F6B" stroke-width="1"/><circle cx="34" cy="34" r="2.5" fill="#2F6F6B"/></svg>
+      <svg class="corner tr" viewBox="0 0 90 90"><circle cx="8" cy="8" r="4" fill="#152238"/><line x1="8" y1="8" x2="60" y2="8" stroke="#152238" stroke-width="1.5"/><line x1="8" y1="8" x2="8" y2="60" stroke="#152238" stroke-width="1.5"/><circle cx="60" cy="8" r="3" fill="#B8923E"/><circle cx="8" cy="60" r="3" fill="#B8923E"/><line x1="8" y1="8" x2="34" y2="34" stroke="#2F6F6B" stroke-width="1"/><circle cx="34" cy="34" r="2.5" fill="#2F6F6B"/></svg>
+      <svg class="corner bl" viewBox="0 0 90 90"><circle cx="8" cy="8" r="4" fill="#152238"/><line x1="8" y1="8" x2="60" y2="8" stroke="#152238" stroke-width="1.5"/><line x1="8" y1="8" x2="8" y2="60" stroke="#152238" stroke-width="1.5"/><circle cx="60" cy="8" r="3" fill="#B8923E"/><circle cx="8" cy="60" r="3" fill="#B8923E"/><line x1="8" y1="8" x2="34" y2="34" stroke="#2F6F6B" stroke-width="1"/><circle cx="34" cy="34" r="2.5" fill="#2F6F6B"/></svg>
+      <svg class="corner br" viewBox="0 0 90 90"><circle cx="8" cy="8" r="4" fill="#152238"/><line x1="8" y1="8" x2="60" y2="8" stroke="#152238" stroke-width="1.5"/><line x1="8" y1="8" x2="8" y2="60" stroke="#152238" stroke-width="1.5"/><circle cx="60" cy="8" r="3" fill="#B8923E"/><circle cx="8" cy="60" r="3" fill="#B8923E"/><line x1="8" y1="8" x2="34" y2="34" stroke="#2F6F6B" stroke-width="1"/><circle cx="34" cy="34" r="2.5" fill="#2F6F6B"/></svg>
+
+      <div class="inner">
+        <div class="brandrow">
+          <div class="monogram">HK</div>
+          <div class="brandname">HK Workshop</div>
+        </div>
+
+        <div class="eyebrow">Certificate of Completion</div>
+        <h2 class="title" id="certCourseTitle">AI Tools for Everyone</h2>
+        <div class="subtitle">A practical, hands-on AI training program</div>
+
+        <div class="presented-to">This certifies that</div>
+        <div class="studentname" id="certStudentName">[ Student Name ]</div>
+
+        <div class="desc">
+          has successfully completed practical training on completion date <b id="certDate">[ date ]</b>,
+          demonstrating hands-on competency across the following tools and skills:
+        </div>
+
+        <div class="skills" id="certSkills"></div>
+
+        <div class="bottom">
+          <div class="block">
+            <div class="line"></div>
+            <div class="value" id="certDateBottom">[ date ]</div>
+            <div class="label">Date of Completion</div>
+          </div>
+
+          <div class="qrblock">
+            <img id="qrImg" alt="QR code">
+            <div class="qr-label">SCAN TO<br>VERIFY</div>
+          </div>
+
+          <div class="block">
+            <div class="line"></div>
+            <div class="value">Harsh</div>
+            <div class="label">Founder, HK Workshop</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="certid">CERT ID: <span id="certIdShow"></span></div>
+    </div>
   </div>
 </div>
 
@@ -199,16 +283,31 @@
       genMsg.textContent = "Certificate saved successfully.";
 
       var verifyUrl = SITE_URL + "/verify.html?id=" + certId;
-      document.getElementById('certIdShow').textContent = certId;
+      var qrUrl = "https://quickchart.io/qr?text=" + encodeURIComponent(verifyUrl) + "&size=180";
+
       document.getElementById('verifyLink').textContent = verifyUrl;
       document.getElementById('verifyLink').href = verifyUrl;
-      document.getElementById('qrImg').src = "https://quickchart.io/qr?text=" + encodeURIComponent(verifyUrl) + "&size=180";
+      document.getElementById('qrImg').src = qrUrl;
+
+      // Fill the printable certificate
+      document.getElementById('certIdShow').textContent = certId;
+      document.getElementById('certCourseTitle').textContent = courseTitle;
+      document.getElementById('certStudentName').textContent = studentName;
+      document.getElementById('certSkills').textContent = skills;
+      var prettyDate = new Date(completionDate + "T00:00:00").toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+      document.getElementById('certDate').textContent = prettyDate;
+      document.getElementById('certDateBottom').textContent = prettyDate;
+
       document.getElementById('out').style.display = 'block';
     })
     .catch(function(err){
       genMsg.className = "msg err";
       genMsg.textContent = "Error: " + err.message;
     });
+  });
+
+  document.getElementById('printBtn').addEventListener('click', function(){
+    window.print();
   });
 })();
 </script>
