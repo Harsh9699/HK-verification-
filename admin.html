@@ -78,9 +78,22 @@
   // ⚠️ REPLACE with your live Netlify site URL once deployed
   const SITE_URL = "https://your-site.netlify.app";
 
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // Surface any uncaught script error directly on the page (instead of a silent failure)
+  window.onerror = function(msg){
+    const el = document.getElementById('loginMsg');
+    if (el) el.textContent = "Script error: " + msg;
+  };
+
+  let supabase;
+  try {
+    if (!window.supabase) throw new Error("Supabase library did not load (check internet connection or ad-blocker).");
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } catch(e){
+    document.getElementById('loginMsg').textContent = e.message;
+  }
 
   async function checkSession(){
+    if (!supabase) return;
     const { data } = await supabase.auth.getSession();
     if (data.session){
       document.getElementById('login').style.display = 'none';
@@ -90,14 +103,24 @@
   checkSession();
 
   async function login(){
+    const msgEl = document.getElementById('loginMsg');
+    if (!supabase){
+      msgEl.textContent = "Supabase not initialized — reload the page.";
+      return;
+    }
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error){
-      document.getElementById('loginMsg').textContent = error.message;
-    } else {
-      document.getElementById('login').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
+    msgEl.textContent = "Logging in...";
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error){
+        msgEl.textContent = error.message;
+      } else {
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+      }
+    } catch(e){
+      msgEl.textContent = "Login failed: " + e.message;
     }
   }
 
