@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Verify Certificate — HK Workshop</title>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>
+  :root{ --navy:#152238; --paper:#FBF8F2; --gold:#B8923E; --teal:#2F6F6B; --ink:#1C1C1C; --muted:#6B6B6B; --red:#b33; }
+  *{box-sizing:border-box;}
+  body{ margin:0; font-family:Georgia,serif; background:#3a3a3a; display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px;}
+  .card{ width:100%; max-width:480px; background:var(--paper); padding:40px; box-shadow:0 20px 60px rgba(0,0,0,.4); text-align:center;}
+  .brand{ font-family:'Courier New',monospace; font-size:12px; letter-spacing:3px; color:var(--navy); text-transform:uppercase; margin-bottom:20px;}
+  .status{ font-size:20px; margin-bottom:20px; }
+  .status.valid{ color:var(--teal); }
+  .status.invalid{ color:var(--red); }
+  .details{ text-align:left; font-family:Georgia,serif; font-size:15px; color:var(--ink); line-height:2; border-top:1px solid var(--gold); padding-top:16px; margin-top:10px;}
+  .details b{ color:var(--navy); }
+  .label{ font-family:'Courier New',monospace; font-size:10px; letter-spacing:1px; color:var(--muted); text-transform:uppercase; display:block; margin-top:10px;}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="brand">HK Workshop — Certificate Verification</div>
+  <div id="result">Checking...</div>
+</div>
+
+<script>
+  // ⚠️ REPLACE with your own Supabase project values (Settings → API)
+  const SUPABASE_URL = "https://hdjfodduhlmrmphaxsjj.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_YnubDZntig72f8Ge_7mQwQ_gVS-tZzq";
+
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  async function verify(){
+    const params = new URLSearchParams(window.location.search);
+    const certId = params.get('id');
+    const result = document.getElementById('result');
+
+    if (!certId){
+      result.innerHTML = `<div class="status invalid">No certificate ID provided.</div>`;
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('certificates')
+      .select('*')
+      .eq('cert_id', certId)
+      .single();
+
+    if (error || !data){
+      result.innerHTML = `<div class="status invalid">✕ Certificate Not Found</div>
+        <div class="details">This certificate ID could not be verified. It may be invalid or revoked.</div>`;
+      return;
+    }
+
+    result.innerHTML = `
+      <div class="status valid">✓ Valid Certificate</div>
+      <div class="details">
+        <span class="label">Awarded To</span><b>${data.student_name}</b>
+        <span class="label">Course</span>${data.course_title}
+        <span class="label">Skills</span>${data.skills}
+        <span class="label">Completion Date</span>${data.completion_date}
+        <span class="label">Certificate ID</span>${data.cert_id}
+      </div>
+    `;
+  }
+
+  verify();
+</script>
+
+</body>
+</html>

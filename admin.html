@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>HK Workshop — Admin</title>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<style>
+  :root{
+    --navy:#152238; --paper:#FBF8F2; --gold:#B8923E; --teal:#2F6F6B; --ink:#1C1C1C; --muted:#6B6B6B;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:Georgia,serif; background:#3a3a3a;
+    display:flex; align-items:flex-start; justify-content:center; min-height:100vh; padding:40px 20px;
+  }
+  .panel{ width:100%; max-width:520px; background:var(--paper); padding:36px 40px; box-shadow:0 20px 60px rgba(0,0,0,.4); }
+  h1{ font-size:22px; color:var(--navy); margin:0 0 4px 0; }
+  .sub{ font-family:'Courier New',monospace; font-size:11px; letter-spacing:2px; color:var(--teal); text-transform:uppercase; margin-bottom:24px;}
+  label{ display:block; font-family:'Courier New',monospace; font-size:11px; letter-spacing:1px; color:var(--muted); text-transform:uppercase; margin:14px 0 4px;}
+  input, textarea{ width:100%; padding:10px; font-family:Georgia,serif; font-size:15px; border:1px solid #ccc; background:#fff;}
+  textarea{ resize:vertical; min-height:60px;}
+  button{ margin-top:20px; width:100%; padding:12px; background:var(--navy); color:var(--paper); border:none; font-family:'Courier New',monospace; letter-spacing:1px; font-size:13px; cursor:pointer; text-transform:uppercase;}
+  button:hover{ background:var(--teal); }
+  .msg{ font-family:'Courier New',monospace; font-size:12px; margin-top:12px; }
+  .msg.err{ color:#b33; } .msg.ok{ color:var(--teal); }
+  #app{ display:none; }
+  .out{ margin-top:26px; border-top:1px solid var(--gold); padding-top:20px; display:none;}
+  .out img{ display:block; margin:10px 0;}
+  .out a{ font-family:'Courier New',monospace; font-size:12px; color:var(--navy);}
+  .certid-display{ font-family:'Courier New',monospace; font-size:13px; color:var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="panel" id="login">
+  <h1>HK Workshop</h1>
+  <div class="sub">Admin Login</div>
+  <label>Email</label>
+  <input type="email" id="email">
+  <label>Password</label>
+  <input type="password" id="password">
+  <button onclick="login()">Log In</button>
+  <div class="msg err" id="loginMsg"></div>
+</div>
+
+<div class="panel" id="app">
+  <h1>Certificate Generator</h1>
+  <div class="sub">HK Workshop — Admin Only</div>
+
+  <label>Student Full Name</label>
+  <input type="text" id="studentName" placeholder="e.g. Priya Sharma">
+
+  <label>Course Title</label>
+  <input type="text" id="courseTitle" value="AI Tools for Everyone">
+
+  <label>Skills Covered</label>
+  <textarea id="skills">NotebookLM, AI Website Creation, Prompt Engineering, AI Image Generation, AI Video Generation, ElevenLabs, Character Generation</textarea>
+
+  <label>Completion Date</label>
+  <input type="date" id="completionDate">
+
+  <button onclick="generateCertificate()">Generate Certificate</button>
+  <div class="msg" id="genMsg"></div>
+
+  <div class="out" id="out">
+    <div class="certid-display">Certificate ID: <b id="certIdShow"></b></div>
+    <canvas id="qrCanvas"></canvas>
+    <a id="verifyLink" target="_blank"></a>
+  </div>
+</div>
+
+<script>
+  // ⚠️ REPLACE these two with your own Supabase project values (Settings → API)
+  const SUPABASE_URL = "https://hdjfodduhlmrmphaxsjj.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_YnubDZntig72f8Ge_7mQwQ_gVS-tZzq";
+
+  // ⚠️ REPLACE with your live Netlify site URL once deployed
+  const SITE_URL = "https://your-site.netlify.app";
+
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  async function checkSession(){
+    const { data } = await supabase.auth.getSession();
+    if (data.session){
+      document.getElementById('login').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    }
+  }
+  checkSession();
+
+  async function login(){
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error){
+      document.getElementById('loginMsg').textContent = error.message;
+    } else {
+      document.getElementById('login').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+    }
+  }
+
+  function makeCertId(){
+    const year = new Date().getFullYear();
+    const rand = Math.random().toString(36).substring(2,8).toUpperCase();
+    return `HKW-${year}-${rand}`;
+  }
+
+  async function generateCertificate(){
+    const studentName = document.getElementById('studentName').value.trim();
+    const courseTitle = document.getElementById('courseTitle').value.trim();
+    const skills = document.getElementById('skills').value.trim();
+    const completionDate = document.getElementById('completionDate').value;
+    const genMsg = document.getElementById('genMsg');
+
+    if (!studentName || !completionDate){
+      genMsg.textContent = "Student name and date are required.";
+      genMsg.className = "msg err";
+      return;
+    }
+
+    const certId = makeCertId();
+
+    const { error } = await supabase.from('certificates').insert({
+      cert_id: certId,
+      student_name: studentName,
+      course_title: courseTitle,
+      skills: skills,
+      completion_date: completionDate
+    });
+
+    if (error){
+      genMsg.textContent = "Error: " + error.message;
+      genMsg.className = "msg err";
+      return;
+    }
+
+    genMsg.textContent = "Certificate saved successfully.";
+    genMsg.className = "msg ok";
+
+    const verifyUrl = `${SITE_URL}/verify.html?id=${certId}`;
+    document.getElementById('certIdShow').textContent = certId;
+    document.getElementById('verifyLink').textContent = verifyUrl;
+    document.getElementById('verifyLink').href = verifyUrl;
+
+    const canvas = document.getElementById('qrCanvas');
+    QRCode.toCanvas(canvas, verifyUrl, { width: 180 });
+
+    document.getElementById('out').style.display = 'block';
+  }
+</script>
+
+</body>
+</html>
