@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HK Workshop — Admin</title>
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <style>
   :root{
     --navy:#152238; --paper:#FBF8F2; --gold:#B8923E; --teal:#2F6F6B; --ink:#1C1C1C; --muted:#6B6B6B;
@@ -14,7 +13,8 @@
     margin:0; font-family:Georgia,serif; background:#3a3a3a;
     display:flex; align-items:flex-start; justify-content:center; min-height:100vh; padding:40px 20px;
   }
-  .panel{ width:100%; max-width:520px; background:var(--paper); padding:36px 40px; box-shadow:0 20px 60px rgba(0,0,0,.4); }
+  .banner{ position:fixed; top:0; left:0; right:0; background:var(--navy); color:#9fd; font-family:'Courier New',monospace; font-size:11px; padding:6px 12px; z-index:99; }
+  .panel{ width:100%; max-width:520px; background:var(--paper); padding:36px 40px; box-shadow:0 20px 60px rgba(0,0,0,.4); margin-top:34px; }
   h1{ font-size:22px; color:var(--navy); margin:0 0 4px 0; }
   .sub{ font-family:'Courier New',monospace; font-size:11px; letter-spacing:2px; color:var(--teal); text-transform:uppercase; margin-bottom:24px;}
   label{ display:block; font-family:'Courier New',monospace; font-size:11px; letter-spacing:1px; color:var(--muted); text-transform:uppercase; margin:14px 0 4px;}
@@ -22,25 +22,27 @@
   textarea{ resize:vertical; min-height:60px;}
   button{ margin-top:20px; width:100%; padding:12px; background:var(--navy); color:var(--paper); border:none; font-family:'Courier New',monospace; letter-spacing:1px; font-size:13px; cursor:pointer; text-transform:uppercase;}
   button:hover{ background:var(--teal); }
-  .msg{ font-family:'Courier New',monospace; font-size:12px; margin-top:12px; }
-  .msg.err{ color:#b33; } .msg.ok{ color:var(--teal); }
+  .msg{ font-family:'Courier New',monospace; font-size:12px; margin-top:12px; white-space:pre-wrap; word-break:break-word; }
+  .msg.err{ color:#c0392b; } .msg.ok{ color:var(--teal); }
   #app{ display:none; }
   .out{ margin-top:26px; border-top:1px solid var(--gold); padding-top:20px; display:none;}
-  .out img{ display:block; margin:10px 0;}
-  .out a{ font-family:'Courier New',monospace; font-size:12px; color:var(--navy);}
+  .out img{ display:block; margin:10px 0; border:1px solid #ddd;}
+  .out a{ font-family:'Courier New',monospace; font-size:12px; color:var(--navy); word-break:break-all;}
   .certid-display{ font-family:'Courier New',monospace; font-size:13px; color:var(--muted); }
 </style>
 </head>
 <body>
 
+<div class="banner" id="banner">Loading…</div>
+
 <div class="panel" id="login">
   <h1>HK Workshop</h1>
   <div class="sub">Admin Login</div>
   <label>Email</label>
-  <input type="email" id="email">
+  <input type="email" id="email" autocomplete="username">
   <label>Password</label>
-  <input type="password" id="password">
-  <button onclick="login()">Log In</button>
+  <input type="password" id="password" autocomplete="current-password">
+  <button id="loginBtn" type="button">Log In</button>
   <div class="msg err" id="loginMsg"></div>
 </div>
 
@@ -60,118 +62,155 @@
   <label>Completion Date</label>
   <input type="date" id="completionDate">
 
-  <button onclick="generateCertificate()">Generate Certificate</button>
+  <button id="genBtn" type="button">Generate Certificate</button>
   <div class="msg" id="genMsg"></div>
 
   <div class="out" id="out">
     <div class="certid-display">Certificate ID: <b id="certIdShow"></b></div>
-    <canvas id="qrCanvas"></canvas>
+    <img id="qrImg" width="180" height="180" alt="QR code">
     <a id="verifyLink" target="_blank"></a>
   </div>
 </div>
 
 <script>
-  // ⚠️ REPLACE these two with your own Supabase project values (Settings → API)
-  const SUPABASE_URL = "https://hdjfodduhlmrmphaxsjj.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_YnubDZntig72f8Ge_7mQwQ_gVS-tZzq";
+(function(){
+  var banner = document.getElementById('banner');
 
-  // ⚠️ REPLACE with your live Netlify site URL once deployed
-  const SITE_URL = "https://your-site.netlify.app";
+  // Catch every possible failure mode and show it on screen — never fail silently.
+  window.addEventListener('error', function(e){
+    banner.textContent = "JS Error: " + (e.message || e);
+  });
+  window.addEventListener('unhandledrejection', function(e){
+    banner.textContent = "Promise Error: " + (e.reason && e.reason.message ? e.reason.message : e.reason);
+  });
 
-  // Surface any uncaught script error directly on the page (instead of a silent failure)
-  window.onerror = function(msg){
-    const el = document.getElementById('loginMsg');
-    if (el) el.textContent = "Script error: " + msg;
-  };
+  // Your Supabase project values
+  var SUPABASE_URL = "https://hdjfodduhlmrmphaxsjj.supabase.co";
+  var SUPABASE_ANON_KEY = "sb_publishable_YnubDZntig72f8Ge_7mQwQ_gVS-tZzq";
+  // Your live Netlify site URL
+  var SITE_URL = "https://your-site.netlify.app";
 
-  let supabase;
-  try {
-    if (!window.supabase) throw new Error("Supabase library did not load (check internet connection or ad-blocker).");
-    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  } catch(e){
-    document.getElementById('loginMsg').textContent = e.message;
+  banner.textContent = "Script loaded OK. Ready.";
+
+  function setSession(token){
+    if (token) sessionStorage.setItem('hkw_token', token);
+    else sessionStorage.removeItem('hkw_token');
+  }
+  function getSession(){
+    return sessionStorage.getItem('hkw_token');
   }
 
-  async function checkSession(){
-    if (!supabase) return;
-    const { data } = await supabase.auth.getSession();
-    if (data.session){
-      document.getElementById('login').style.display = 'none';
-      document.getElementById('app').style.display = 'block';
-    }
+  function showApp(){
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
   }
-  checkSession();
 
-  async function login(){
-    const msgEl = document.getElementById('loginMsg');
-    if (!supabase){
-      msgEl.textContent = "Supabase not initialized — reload the page.";
+  // If already logged in this session, skip straight to the generator
+  if (getSession()) showApp();
+
+  document.getElementById('loginBtn').addEventListener('click', function(){
+    var msgEl = document.getElementById('loginMsg');
+    var email = document.getElementById('email').value.trim();
+    var password = document.getElementById('password').value;
+    if (!email || !password){
+      msgEl.textContent = "Enter both email and password.";
       return;
     }
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
     msgEl.textContent = "Logging in...";
-    try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error){
-        msgEl.textContent = error.message;
-      } else {
-        document.getElementById('login').style.display = 'none';
-        document.getElementById('app').style.display = 'block';
+
+    fetch(SUPABASE_URL + "/auth/v1/token?grant_type=password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({ email: email, password: password })
+    })
+    .then(function(res){ return res.json().then(function(data){ return {status: res.status, data: data}; }); })
+    .then(function(result){
+      if (result.status !== 200 || !result.data.access_token){
+        msgEl.textContent = "Login failed: " + (result.data.error_description || result.data.msg || JSON.stringify(result.data));
+        return;
       }
-    } catch(e){
-      msgEl.textContent = "Login failed: " + e.message;
-    }
-  }
+      setSession(result.data.access_token);
+      msgEl.textContent = "";
+      showApp();
+    })
+    .catch(function(err){
+      msgEl.textContent = "Network error: " + err.message + " (check internet connection)";
+    });
+  });
 
   function makeCertId(){
-    const year = new Date().getFullYear();
-    const rand = Math.random().toString(36).substring(2,8).toUpperCase();
-    return `HKW-${year}-${rand}`;
+    var year = new Date().getFullYear();
+    var rand = Math.random().toString(36).substring(2,8).toUpperCase();
+    return "HKW-" + year + "-" + rand;
   }
 
-  async function generateCertificate(){
-    const studentName = document.getElementById('studentName').value.trim();
-    const courseTitle = document.getElementById('courseTitle').value.trim();
-    const skills = document.getElementById('skills').value.trim();
-    const completionDate = document.getElementById('completionDate').value;
-    const genMsg = document.getElementById('genMsg');
+  document.getElementById('genBtn').addEventListener('click', function(){
+    var genMsg = document.getElementById('genMsg');
+    var studentName = document.getElementById('studentName').value.trim();
+    var courseTitle = document.getElementById('courseTitle').value.trim();
+    var skills = document.getElementById('skills').value.trim();
+    var completionDate = document.getElementById('completionDate').value;
 
     if (!studentName || !completionDate){
+      genMsg.className = "msg err";
       genMsg.textContent = "Student name and date are required.";
-      genMsg.className = "msg err";
       return;
     }
 
-    const certId = makeCertId();
+    var token = getSession();
+    if (!token){
+      genMsg.className = "msg err";
+      genMsg.textContent = "Session expired — please log in again.";
+      document.getElementById('app').style.display = 'none';
+      document.getElementById('login').style.display = 'block';
+      return;
+    }
 
-    const { error } = await supabase.from('certificates').insert({
-      cert_id: certId,
-      student_name: studentName,
-      course_title: courseTitle,
-      skills: skills,
-      completion_date: completionDate
+    var certId = makeCertId();
+    genMsg.className = "msg";
+    genMsg.textContent = "Saving...";
+
+    fetch(SUPABASE_URL + "/rest/v1/certificates", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": "Bearer " + token,
+        "Prefer": "return=minimal"
+      },
+      body: JSON.stringify({
+        cert_id: certId,
+        student_name: studentName,
+        course_title: courseTitle,
+        skills: skills,
+        completion_date: completionDate
+      })
+    })
+    .then(function(res){
+      if (!res.ok){
+        return res.json().then(function(errData){
+          throw new Error(errData.message || JSON.stringify(errData));
+        });
+      }
+      genMsg.className = "msg ok";
+      genMsg.textContent = "Certificate saved successfully.";
+
+      var verifyUrl = SITE_URL + "/verify.html?id=" + certId;
+      document.getElementById('certIdShow').textContent = certId;
+      document.getElementById('verifyLink').textContent = verifyUrl;
+      document.getElementById('verifyLink').href = verifyUrl;
+      document.getElementById('qrImg').src = "https://quickchart.io/qr?text=" + encodeURIComponent(verifyUrl) + "&size=180";
+      document.getElementById('out').style.display = 'block';
+    })
+    .catch(function(err){
+      genMsg.className = "msg err";
+      genMsg.textContent = "Error: " + err.message;
     });
-
-    if (error){
-      genMsg.textContent = "Error: " + error.message;
-      genMsg.className = "msg err";
-      return;
-    }
-
-    genMsg.textContent = "Certificate saved successfully.";
-    genMsg.className = "msg ok";
-
-    const verifyUrl = `${SITE_URL}/verify.html?id=${certId}`;
-    document.getElementById('certIdShow').textContent = certId;
-    document.getElementById('verifyLink').textContent = verifyUrl;
-    document.getElementById('verifyLink').href = verifyUrl;
-
-    const canvas = document.getElementById('qrCanvas');
-    QRCode.toCanvas(canvas, verifyUrl, { width: 180 });
-
-    document.getElementById('out').style.display = 'block';
-  }
+  });
+})();
 </script>
 
 </body>

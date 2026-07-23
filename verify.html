@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Verify Certificate — HK Workshop</title>
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <style>
-  :root{ --navy:#152238; --paper:#FBF8F2; --gold:#B8923E; --teal:#2F6F6B; --ink:#1C1C1C; --muted:#6B6B6B; --red:#b33; }
+  :root{ --navy:#152238; --paper:#FBF8F2; --gold:#B8923E; --teal:#2F6F6B; --ink:#1C1C1C; --muted:#6B6B6B; --red:#c0392b; }
   *{box-sizing:border-box;}
   body{ margin:0; font-family:Georgia,serif; background:#3a3a3a; display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px;}
   .card{ width:100%; max-width:480px; background:var(--paper); padding:40px; box-shadow:0 20px 60px rgba(0,0,0,.4); text-align:center;}
@@ -26,47 +26,56 @@
 </div>
 
 <script>
-  // ⚠️ REPLACE with your own Supabase project values (Settings → API)
-  const SUPABASE_URL = "https://hdjfodduhlmrmphaxsjj.supabase.co";
-  const SUPABASE_ANON_KEY = "sb_publishable_YnubDZntig72f8Ge_7mQwQ_gVS-tZzq";
+(function(){
+  var SUPABASE_URL = "https://hdjfodduhlmrmphaxsjj.supabase.co";
+  var SUPABASE_ANON_KEY = "sb_publishable_YnubDZntig72f8Ge_7mQwQ_gVS-tZzq";
 
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  var result = document.getElementById('result');
 
-  async function verify(){
-    const params = new URLSearchParams(window.location.search);
-    const certId = params.get('id');
-    const result = document.getElementById('result');
+  window.addEventListener('error', function(e){
+    result.innerHTML = '<div class="status invalid">Error: ' + (e.message || e) + '</div>';
+  });
 
-    if (!certId){
-      result.innerHTML = `<div class="status invalid">No certificate ID provided.</div>`;
-      return;
-    }
+  var params = new URLSearchParams(window.location.search);
+  var certId = params.get('id');
 
-    const { data, error } = await supabase
-      .from('certificates')
-      .select('*')
-      .eq('cert_id', certId)
-      .single();
-
-    if (error || !data){
-      result.innerHTML = `<div class="status invalid">✕ Certificate Not Found</div>
-        <div class="details">This certificate ID could not be verified. It may be invalid or revoked.</div>`;
-      return;
-    }
-
-    result.innerHTML = `
-      <div class="status valid">✓ Valid Certificate</div>
-      <div class="details">
-        <span class="label">Awarded To</span><b>${data.student_name}</b>
-        <span class="label">Course</span>${data.course_title}
-        <span class="label">Skills</span>${data.skills}
-        <span class="label">Completion Date</span>${data.completion_date}
-        <span class="label">Certificate ID</span>${data.cert_id}
-      </div>
-    `;
+  if (!certId){
+    result.innerHTML = '<div class="status invalid">No certificate ID provided.</div>';
+    return;
   }
 
-  verify();
+  var url = SUPABASE_URL + "/rest/v1/certificates?cert_id=eq." + encodeURIComponent(certId) + "&select=*";
+
+  fetch(url, {
+    headers: {
+      "apikey": SUPABASE_ANON_KEY
+    }
+  })
+  .then(function(res){
+    if (!res.ok) throw new Error("Server returned status " + res.status);
+    return res.json();
+  })
+  .then(function(rows){
+    if (!rows || rows.length === 0){
+      result.innerHTML = '<div class="status invalid">✕ Certificate Not Found</div>' +
+        '<div class="details">This certificate ID could not be verified. It may be invalid or revoked.</div>';
+      return;
+    }
+    var data = rows[0];
+    result.innerHTML =
+      '<div class="status valid">✓ Valid Certificate</div>' +
+      '<div class="details">' +
+        '<span class="label">Awarded To</span><b>' + data.student_name + '</b>' +
+        '<span class="label">Course</span>' + data.course_title +
+        '<span class="label">Skills</span>' + data.skills +
+        '<span class="label">Completion Date</span>' + data.completion_date +
+        '<span class="label">Certificate ID</span>' + data.cert_id +
+      '</div>';
+  })
+  .catch(function(err){
+    result.innerHTML = '<div class="status invalid">Connection error: ' + err.message + '</div>';
+  });
+})();
 </script>
 
 </body>
