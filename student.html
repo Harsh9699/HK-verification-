@@ -5,35 +5,154 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Student Dashboard — HK Workshop</title>
 <style>
-  :root{ --navy:#152238; --paper:#FBF8F2; --gold:#B8923E; --teal:#2F6F6B; --ink:#1C1C1C; --muted:#6B6B6B; --red:#c0392b; }
-  *{box-sizing:border-box;}
-  body{ margin:0; font-family:Georgia,serif; background:#3a3a3a; display:flex; align-items:flex-start; justify-content:center; min-height:100vh; padding:40px 20px;}
-  .banner{ position:fixed; top:0; left:0; right:0; background:var(--navy); color:#9fd; font-family:'Courier New',monospace; font-size:11px; padding:6px 12px; z-index:99; }
-  .panel{ width:100%; max-width:560px; background:var(--paper); padding:36px 40px; box-shadow:0 20px 60px rgba(0,0,0,.4); margin-top:34px;}
-  h1{ font-size:22px; color:var(--navy); margin:0 0 4px 0; }
-  .sub{ font-family:'Courier New',monospace; font-size:11px; letter-spacing:2px; color:var(--teal); text-transform:uppercase; margin-bottom:24px;}
-  label{ display:block; font-family:'Courier New',monospace; font-size:11px; letter-spacing:1px; color:var(--muted); text-transform:uppercase; margin:14px 0 4px;}
-  input{ width:100%; padding:10px; font-family:Georgia,serif; font-size:15px; border:1px solid #ccc; background:#fff;}
-  button{ margin-top:20px; width:100%; padding:12px; background:var(--navy); color:var(--paper); border:none; font-family:'Courier New',monospace; letter-spacing:1px; font-size:13px; cursor:pointer; text-transform:uppercase;}
-  button:hover{ background:var(--teal); }
-  .msg{ font-family:'Courier New',monospace; font-size:12px; margin-top:12px; }
-  .msg.err{ color:var(--red); } .msg.ok{ color:var(--teal); }
-  #dash{ display:none; }
-  .progressBar{ background:#e5e0d5; height:10px; border-radius:6px; overflow:hidden; margin:10px 0 4px 0;}
-  .progressFill{ background:var(--teal); height:100%; }
-  .sessionItem{ border-bottom:1px solid #e5e0d5; padding:12px 0; }
-  .sessionItem .snum{ font-family:'Courier New',monospace; font-size:11px; color:var(--muted); letter-spacing:1px;}
-  .sessionItem .status{ font-size:13px; font-weight:bold; }
-  .sessionItem .status.done{ color:var(--teal); }
-  .sessionItem .status.pending{ color:var(--muted); }
-  .sessionItem .topics{ font-size:14px; color:var(--ink); margin-top:4px;}
-  .sessionItem .notes{ font-size:13px; color:var(--muted); font-style:italic; margin-top:2px;}
-  .certBox{ border:1px solid var(--gold); padding:16px; margin-top:20px; text-align:center; }
-  .certBox a{ display:inline-block; margin-top:10px; background:var(--gold); color:var(--paper); padding:10px 18px; text-decoration:none; font-family:'Courier New',monospace; font-size:12px; letter-spacing:1px;}
-  .logoutLink{ display:block; text-align:center; margin-top:20px; font-family:'Courier New',monospace; font-size:11px; color:var(--muted); cursor:pointer;}
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+  :root {
+    --primary: #0f172a;
+    --primary-hover: #1e293b;
+    --secondary: #d97706;
+    --bg: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    --card-bg: rgba(255, 255, 255, 0.65);
+    --text-main: #111827;
+    --text-muted: #6B7280;
+    --border: #E5E7EB;
+    --red: #EF4444;
+  }
+  * { box-sizing: border-box; }
+  body { 
+    margin: 0; 
+    font-family: 'Outfit', sans-serif; 
+    background: var(--bg); 
+    display: flex; 
+    align-items: flex-start; 
+    justify-content: center; 
+    min-height: 100vh; 
+    padding: 40px 20px; 
+    color: var(--text-main);
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Animated Background Orbs */
+  .bg-orbs { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+  .orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.6; animation: float 15s ease-in-out infinite; }
+  .orb.a { width: 500px; height: 500px; background: #cbd5e1; top: -100px; left: -200px; }
+  .orb.b { width: 400px; height: 400px; background: #fde68a; bottom: -100px; right: -100px; animation-direction: reverse; animation-delay: -5s;}
+  @keyframes float { 0% { transform: translateY(0) scale(1); } 50% { transform: translateY(-50px) scale(1.1); } 100% { transform: translateY(0) scale(1); } }
+
+  .banner { 
+    position: fixed; top: 0; left: 0; right: 0; 
+    background: var(--primary); color: #fff; 
+    font-weight: 500; font-size: 12px; padding: 8px 16px; 
+    z-index: 99; text-align: center;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.2);
+  }
+  
+  /* Glassmorphism Panel */
+  .panel { 
+    width: 100%; max-width: 560px; 
+    background: var(--card-bg); 
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    padding: 48px; 
+    border-radius: 24px;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255,255,255,1);
+    margin-top: 34px;
+    border: 1px solid rgba(255,255,255,0.8);
+    position: relative;
+    z-index: 1;
+  }
+  h1 { font-size: 28px; font-weight: 700; color: var(--text-main); margin: 0 0 8px 0; letter-spacing: -0.5px;}
+  .sub { font-size: 13px; font-weight: 500; letter-spacing: 1.5px; color: var(--primary); text-transform: uppercase; margin-bottom: 32px; }
+  
+  label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin: 16px 0 8px; letter-spacing: 0.5px;}
+  input { 
+    width: 100%; padding: 12px 16px; font-family: 'Outfit', sans-serif; font-size: 15px; 
+    border: 1px solid var(--border); border-radius: 8px; background: rgba(255,255,255,0.7);
+    transition: all 0.2s ease;
+  }
+  input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1); background: #fff;}
+  
+  button { 
+    margin-top: 24px; width: 100%; padding: 14px; 
+    background: var(--primary); color: #fff; border: none; border-radius: 8px;
+    font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 14px; cursor: pointer; 
+    transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.3);
+  }
+  button:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(15, 23, 42, 0.4); }
+  
+  .msg { font-size: 13px; font-weight: 500; margin-top: 16px; text-align: center; }
+  .msg.err { color: var(--red); background: #FEF2F2; padding: 10px; border-radius: 8px; border: 1px solid #FEE2E2;} 
+  .msg.ok { color: var(--secondary); background: #fef3c7; padding: 10px; border-radius: 8px; border: 1px solid #D1FAE5;}
+  
+  #dash { display: none; }
+  
+  /* Glowing Progress Bar */
+  .progressBar { 
+    background: #e5e7eb; height: 12px; border-radius: 999px; overflow: hidden; margin: 12px 0 8px 0; 
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .progressFill { 
+    background: linear-gradient(90deg, #10B981 0%, #34D399 100%); 
+    height: 100%; border-radius: 999px; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+  }
+  #progressText { text-align: left; margin-top: 4px; color: var(--text-muted); font-size: 12px;}
+  
+  /* Session Hover & Slide Animations */
+  @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
+  .sessionItem { 
+    opacity: 0; transform: translateY(20px);
+    animation: slideUp 0.5s forwards;
+    border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px;
+    background: rgba(255, 255, 255, 0.8); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .sessionItem:hover { 
+    background: #fff; 
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08); 
+    transform: translateY(-3px) scale(1.01); 
+    border-color: #cbd5e1; 
+  }
+  .sessionItem .snum { font-size: 11px; font-weight: 600; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px;}
+  .sessionItem .status { font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 6px;}
+  .sessionItem .status.done { color: #065f46; background: #D1FAE5; }
+  .sessionItem .status.pending { color: var(--text-muted); background: #F3F4F6; }
+  .sessionItem .topics { font-size: 15px; font-weight: 500; color: var(--text-main); margin-top: 8px;}
+  .sessionItem .notes { font-size: 14px; color: var(--text-muted); margin-top: 4px; line-height: 1.5;}
+  
+  /* Shimmering Certificate Box */
+  @keyframes shimmer { 0% { background-position: -500px 0; } 100% { background-position: 500px 0; } }
+  .certBox { 
+    background: linear-gradient(135deg, #FFFBEE 0%, #FFF4D1 100%); 
+    border: 1px solid #FDE68A; border-radius: 16px; padding: 24px; margin-top: 32px; text-align: center; 
+    box-shadow: 0 10px 25px rgba(245, 158, 11, 0.1);
+    position: relative; overflow: hidden;
+  }
+  .certBox::after {
+    content: ''; position: absolute; top:0; left:0; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    background-size: 500px 100%;
+    animation: shimmer 3s infinite;
+    pointer-events: none;
+  }
+  .certBox a { 
+    display: inline-block; margin-top: 16px; background: #F59E0B; color: #fff; 
+    padding: 12px 24px; border-radius: 8px; text-decoration: none; 
+    font-weight: 600; font-size: 14px; transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    position: relative; z-index: 2;
+  }
+  .certBox a:hover { background: #D97706; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);}
+  
+  .logoutLink { display: block; text-align: center; margin-top: 32px; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: color 0.2s ease;}
+  .logoutLink:hover { color: var(--red); }
 </style>
 </head>
 <body>
+
+<div class="bg-orbs">
+  <div class="orb a"></div>
+  <div class="orb b"></div>
+</div>
 
 <div class="banner" id="banner">Loading…</div>
 
@@ -59,7 +178,7 @@
   <div id="sessionList" style="margin-top:20px;"></div>
 
   <div class="certBox" id="certBox" style="display:none;">
-    <div style="font-family:'Courier New',monospace; font-size:11px; letter-spacing:2px; color:var(--teal); text-transform:uppercase;">Certificate Issued 🎉</div>
+    <div style="font-family:'Courier New',monospace; font-size:11px; letter-spacing:2px; color:#D97706; text-transform:uppercase; position: relative; z-index: 2;">Certificate Issued 🎉</div>
     <a id="certLink" href="#" target="_blank">View / Verify Certificate</a>
   </div>
 
@@ -147,14 +266,21 @@
       sessions = sessions || [];
       var attended = sessions.filter(function(s){ return s.attended; }).length;
       var pct = Math.round((attended / 6) * 100);
-      document.getElementById('progressFill').style.width = pct + "%";
+      
+      // Animate progress bar in after a slight delay
+      setTimeout(function(){
+        document.getElementById('progressFill').style.width = pct + "%";
+      }, 100);
+      
       document.getElementById('progressText').textContent = attended + " of 6 sessions completed";
 
       var listEl = document.getElementById('sessionList');
       listEl.innerHTML = "";
-      sessions.forEach(function(s){
+      sessions.forEach(function(s, index){
         var div = document.createElement('div');
         div.className = "sessionItem";
+        // Staggered slide-in animation
+        div.style.animationDelay = (index * 0.1) + "s";
         div.innerHTML =
           '<div class="snum">SESSION ' + s.session_number + (s.session_date ? ' — ' + s.session_date : '') + '</div>' +
           '<div class="status ' + (s.attended ? 'done' : 'pending') + '">' + (s.attended ? '✓ Completed' : '○ Pending') + '</div>' +

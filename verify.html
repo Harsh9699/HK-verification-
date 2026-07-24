@@ -5,17 +5,121 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Verify Certificate — HK Workshop</title>
 <style>
-  :root{ --navy:#152238; --paper:#FBF8F2; --gold:#B8923E; --teal:#2F6F6B; --ink:#1C1C1C; --muted:#6B6B6B; --red:#c0392b; }
-  *{box-sizing:border-box;}
-  body{ margin:0; font-family:Georgia,serif; background:#3a3a3a; display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px;}
-  .card{ width:100%; max-width:480px; background:var(--paper); padding:40px; box-shadow:0 20px 60px rgba(0,0,0,.4); text-align:center;}
-  .brand{ font-family:'Courier New',monospace; font-size:12px; letter-spacing:3px; color:var(--navy); text-transform:uppercase; margin-bottom:20px;}
-  .status{ font-size:20px; margin-bottom:20px; }
-  .status.valid{ color:var(--teal); }
-  .status.invalid{ color:var(--red); }
-  .details{ text-align:left; font-family:Georgia,serif; font-size:15px; color:var(--ink); line-height:2; border-top:1px solid var(--gold); padding-top:16px; margin-top:10px;}
-  .details b{ color:var(--navy); }
-  .label{ font-family:'Courier New',monospace; font-size:10px; letter-spacing:1px; color:var(--muted); text-transform:uppercase; display:block; margin-top:10px;}
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&display=swap');
+  :root {
+    --primary: #0f172a;
+    --secondary: #d97706;
+    --card-bg: #FFFFFF;
+    --text-main: #111827;
+    --text-muted: #6B7280;
+    --border: #E5E7EB;
+    --red: #EF4444;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Outfit', sans-serif;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    padding: 40px 20px;
+  }
+  .card {
+    width: 100%;
+    max-width: 480px;
+    background: var(--card-bg);
+    padding: 48px 40px;
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0,0,0,0.05);
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.4);
+    z-index: 2;
+  }
+  .brand {
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 2px;
+    color: var(--primary);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  .status {
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .status.valid { color: var(--secondary); }
+  .status.invalid { color: var(--red); }
+  .details {
+    text-align: left;
+    font-size: 15px;
+    color: var(--text-main);
+    line-height: 1.6;
+    border-top: 1px solid var(--border);
+    padding-top: 24px;
+    margin-top: 16px;
+  }
+  .details b { color: var(--text-main); font-weight: 600; }
+  .label {
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    display: block;
+    margin-top: 16px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .printBtn { margin-top: 24px; width: 100%; padding: 14px; background: #F59E0B; color: #fff; border: none; border-radius: 8px; font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); }
+  .printBtn:hover { background: #D97706; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4); }
+
+  /* Printable certificate */
+  #certificateContainer { display: none; margin-top: 40px; margin-bottom: 40px; transform: scale(0.8); transform-origin: top center; z-index: 1;}
+  @media (max-width: 900px) { #certificateContainer { transform: scale(0.6); } }
+  @media (max-width: 600px) { #certificateContainer { transform: scale(0.4); } }
+  
+  #certificate{ width:1123px; height:794px; background:#fff; position:relative; box-shadow:0 20px 60px rgba(0,0,0,.15); margin:0 auto; border-radius:8px; overflow:hidden;}
+  #certificate svg.corner{position:absolute; width:90px; height:90px;}
+  #certificate .corner.tl{top:-2px; left:-2px;}
+  #certificate .corner.tr{top:-2px; right:-2px; transform:scaleX(-1);}
+  #certificate .corner.bl{bottom:-2px; left:-2px; transform:scaleY(-1);}
+  #certificate .corner.br{bottom:-2px; right:-2px; transform:scale(-1,-1);}
+  #certificate .inner{ position:absolute; inset:48px; border:2px solid #e5e7eb; padding:46px 64px; display:flex; flex-direction:column; align-items:center; text-align:center;}
+  #certificate .brandrow{ display:flex; align-items:center; gap:12px; margin-bottom:12px;}
+  #certificate .monogram{ width:44px; height:44px; border-radius:50%; background:#111827; color:#fff; font-family:'Outfit',sans-serif; font-weight:700; font-size:17px; display:flex; align-items:center; justify-content:center; letter-spacing:0.5px;}
+  #certificate .brandname{ font-family:'Outfit',sans-serif; font-size:15px; letter-spacing:3px; font-weight:600; color:#111827; text-transform:uppercase;}
+  #certificate .eyebrow{ font-family:'Outfit',sans-serif; font-size:13px; font-weight:600; letter-spacing:4px; color:#4F46E5; text-transform:uppercase; margin-top:22px;}
+  #certificate h2.title{ font-family:'Cormorant Garamond',serif; font-size:46px; color:#111827; margin:8px 0 2px 0; font-weight:600; letter-spacing:1px;}
+  #certificate .subtitle{ font-size:16px; color:#6b7280; font-style:italic; margin-bottom:26px;}
+  #certificate .presented-to{ font-size:12px; font-weight:500; letter-spacing:3px; color:#6b7280; text-transform:uppercase;}
+  #certificate .studentname{ font-family:'Cormorant Garamond',serif; font-size:52px; color:#111827; margin:6px 0 14px 0; border-bottom:1px solid #d1d5db; padding:0 20px 10px 20px; min-width:520px; font-weight:600;}
+  #certificate .desc{ font-size:16px; color:#374151; max-width:640px; line-height:1.7; margin-bottom:10px;}
+  #certificate .desc b{color:#111827; font-weight:600;}
+  #certificate .skills{ font-size:14px; color:#4F46E5; font-weight:500; letter-spacing:0.5px; max-width:680px; line-height:1.9; margin-bottom:24px;}
+  #certificate .bottom{ width:100%; display:flex; justify-content:space-between; align-items:flex-end; margin-top:auto; padding-top:10px;}
+  #certificate .block{ text-align:center; min-width:190px;}
+  #certificate .block .line{ border-top:1px solid #9ca3af; margin-bottom:6px; padding-top:6px;}
+  #certificate .block .label{ font-size:11px; font-weight:600; letter-spacing:2px; color:#6b7280; text-transform:uppercase;}
+  #certificate .block .value{ font-family:'Cormorant Garamond',serif; font-weight:600; font-size:18px; color:#111827;}
+  #certificate .qrblock{ display:flex; flex-direction:column; align-items:center; gap:6px;}
+  #certificate .qrblock img{ width:70px; height:70px;}
+  #certificate .qr-label{ font-size:10px; font-weight:600; letter-spacing:1px; color:#6b7280; text-align:center;}
+  #certificate .certid{ position:absolute; bottom:60px; left:64px; font-size:11px; font-weight:500; letter-spacing:1px; color:#6b7280;}
+
+  @media print{
+    body *{ visibility:hidden; }
+    #certificate, #certificate *{ visibility:visible; }
+    #certificate{ position:fixed; top:0; left:0; margin:0; box-shadow:none; border-radius:0; transform:scale(1);}
+    @page{ size:landscape; margin:0; }
+  }
 </style>
 </head>
 <body>
@@ -25,10 +129,54 @@
   <div id="result">Checking...</div>
 </div>
 
+<div id="certificateContainer">
+  <div id="certificate">
+    <svg class="corner tl" viewBox="0 0 90 90"><circle cx="8" cy="8" r="4" fill="#152238"/><line x1="8" y1="8" x2="60" y2="8" stroke="#152238" stroke-width="1.5"/><line x1="8" y1="8" x2="8" y2="60" stroke="#152238" stroke-width="1.5"/><circle cx="60" cy="8" r="3" fill="#B8923E"/><circle cx="8" cy="60" r="3" fill="#B8923E"/><line x1="8" y1="8" x2="34" y2="34" stroke="#2F6F6B" stroke-width="1"/><circle cx="34" cy="34" r="2.5" fill="#2F6F6B"/></svg>
+    <svg class="corner tr" viewBox="0 0 90 90"><circle cx="8" cy="8" r="4" fill="#152238"/><line x1="8" y1="8" x2="60" y2="8" stroke="#152238" stroke-width="1.5"/><line x1="8" y1="8" x2="8" y2="60" stroke="#152238" stroke-width="1.5"/><circle cx="60" cy="8" r="3" fill="#B8923E"/><circle cx="8" cy="60" r="3" fill="#B8923E"/><line x1="8" y1="8" x2="34" y2="34" stroke="#2F6F6B" stroke-width="1"/><circle cx="34" cy="34" r="2.5" fill="#2F6F6B"/></svg>
+    <svg class="corner bl" viewBox="0 0 90 90"><circle cx="8" cy="8" r="4" fill="#152238"/><line x1="8" y1="8" x2="60" y2="8" stroke="#152238" stroke-width="1.5"/><line x1="8" y1="8" x2="8" y2="60" stroke="#152238" stroke-width="1.5"/><circle cx="60" cy="8" r="3" fill="#B8923E"/><circle cx="8" cy="60" r="3" fill="#B8923E"/><line x1="8" y1="8" x2="34" y2="34" stroke="#2F6F6B" stroke-width="1"/><circle cx="34" cy="34" r="2.5" fill="#2F6F6B"/></svg>
+    <svg class="corner br" viewBox="0 0 90 90"><circle cx="8" cy="8" r="4" fill="#152238"/><line x1="8" y1="8" x2="60" y2="8" stroke="#152238" stroke-width="1.5"/><line x1="8" y1="8" x2="8" y2="60" stroke="#152238" stroke-width="1.5"/><circle cx="60" cy="8" r="3" fill="#B8923E"/><circle cx="8" cy="60" r="3" fill="#B8923E"/><line x1="8" y1="8" x2="34" y2="34" stroke="#2F6F6B" stroke-width="1"/><circle cx="34" cy="34" r="2.5" fill="#2F6F6B"/></svg>
+
+    <div class="inner">
+      <div class="brandrow">
+        <div class="monogram">HK</div>
+        <div class="brandname">HK Workshop</div>
+      </div>
+      <div class="eyebrow">Certificate of Completion</div>
+      <h2 class="title" id="certCourseTitle"></h2>
+      <div class="subtitle">A practical, hands-on AI training program</div>
+      <div class="presented-to">This certifies that</div>
+      <div class="studentname" id="certStudentName"></div>
+      <div class="desc">
+        has successfully completed practical training on completion date <b id="certDate"></b>,
+        demonstrating hands-on competency across the following tools and skills:
+      </div>
+      <div class="skills" id="certSkills"></div>
+      <div class="bottom">
+        <div class="block">
+          <div class="line"></div>
+          <div class="value" id="certDateBottom"></div>
+          <div class="label">Date of Completion</div>
+        </div>
+        <div class="qrblock">
+          <img id="qrImg" alt="QR code">
+          <div class="qr-label">SCAN TO<br>VERIFY</div>
+        </div>
+        <div class="block">
+          <div class="line"></div>
+          <div class="value">Harsh</div>
+          <div class="label">Founder, HK Workshop</div>
+        </div>
+      </div>
+    </div>
+    <div class="certid">CERT ID: <span id="certIdShow"></span></div>
+  </div>
+</div>
+
 <script>
 (function(){
   var SUPABASE_URL = "https://hdjfodduhlmrmphaxsjj.supabase.co";
   var SUPABASE_ANON_KEY = "sb_publishable_YnubDZntig72f8Ge_7mQwQ_gVS-tZzq";
+  var SITE_URL = "https://hkcerts.netlify.app";
 
   var result = document.getElementById('result');
 
@@ -62,6 +210,8 @@
       return;
     }
     var data = rows[0];
+    
+    // Update the card HTML
     result.innerHTML =
       '<div class="status valid">✓ Valid Certificate</div>' +
       '<div class="details">' +
@@ -70,7 +220,22 @@
         '<span class="label">Skills</span>' + data.skills +
         '<span class="label">Completion Date</span>' + data.completion_date +
         '<span class="label">Certificate ID</span>' + data.cert_id +
-      '</div>';
+      '</div>' +
+      '<button class="printBtn" onclick="window.print()">🖨 Print / Save as PDF</button>';
+
+    // Populate the certificate UI
+    var prettyDate = new Date(data.completion_date + "T00:00:00").toLocaleDateString('en-GB', { day:'numeric', month:'long', year:'numeric' });
+    document.getElementById('certCourseTitle').textContent = data.course_title;
+    document.getElementById('certStudentName').textContent = data.student_name;
+    document.getElementById('certDate').textContent = prettyDate;
+    document.getElementById('certSkills').textContent = data.skills;
+    document.getElementById('certDateBottom').textContent = prettyDate;
+    document.getElementById('certIdShow').textContent = data.cert_id;
+    
+    var verifyUrl = SITE_URL + "/verify.html?id=" + data.cert_id;
+    document.getElementById('qrImg').src = "https://quickchart.io/qr?text=" + encodeURIComponent(verifyUrl) + "&size=180";
+    
+    document.getElementById('certificateContainer').style.display = 'block';
   })
   .catch(function(err){
     result.innerHTML = '<div class="status invalid">Connection error: ' + err.message + '</div>';
