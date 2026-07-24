@@ -29,6 +29,16 @@
   .out a{ font-family:'Courier New',monospace; font-size:12px; color:var(--navy); word-break:break-all;}
   .printBtn{ background:var(--gold); }
   .printBtn:hover{ background:#a07f34; }
+  .tabBtn{ cursor:pointer; font-weight:bold; }
+  .tabBtn.active{ color:var(--navy); text-decoration:underline; }
+  select{ width:100%; padding:10px; font-family:Georgia,serif; font-size:15px; border:1px solid #ccc; background:#fff;}
+  .studentCard{ border:1px solid #ddd; padding:14px; margin-top:12px; background:#fff; }
+  .studentCard .name{ font-size:16px; color:var(--navy); font-weight:bold;}
+  .studentCard .email{ font-family:'Courier New',monospace; font-size:11px; color:var(--muted);}
+  .sessionRow{ display:flex; gap:8px; align-items:center; margin-top:8px; flex-wrap:wrap; }
+  .sessionRow input[type=text], .sessionRow input[type=date]{ font-size:12px; padding:6px;}
+  .sessionRow .snum{ font-family:'Courier New',monospace; font-size:11px; color:var(--muted); min-width:52px;}
+  .miniBtn{ margin-top:10px; width:auto; padding:8px 14px; font-size:11px;}
 
   /* Printable certificate */
   #certificate{ width:1123px; height:794px; background:var(--paper); position:relative; box-shadow:0 20px 60px rgba(0,0,0,.45); margin:24px auto; transform-origin:top left; }
@@ -83,8 +93,15 @@
 </div>
 
 <div class="panel" id="app">
-  <h1>Certificate Generator</h1>
-  <div class="sub">HK Workshop — Admin Only</div>
+  <h1>HK Workshop Admin</h1>
+  <div class="sub" id="tabRow">
+    <span class="tabBtn active" id="tabCerts">Certificates</span> &nbsp;|&nbsp;
+    <span class="tabBtn" id="tabStudents">Students</span>
+  </div>
+
+  <div id="certGenSection">
+  <label>Link to Student (optional)</label>
+  <select id="studentPicker"><option value="">— Standalone certificate, no student account —</option></select>
 
   <label>Student Full Name</label>
   <input type="text" id="studentName" placeholder="e.g. Priya Sharma">
@@ -154,6 +171,24 @@
       <div class="certid">CERT ID: <span id="certIdShow"></span></div>
     </div>
   </div>
+  </div>
+
+  <div id="studentsSection" style="display:none;">
+    <h1 style="font-size:16px; margin-top:10px;">Add New Student</h1>
+    <label>Full Name</label>
+    <input type="text" id="newStudentName">
+    <label>Email</label>
+    <input type="email" id="newStudentEmail">
+    <label>Password</label>
+    <input type="password" id="newStudentPassword">
+    <label>Course Title</label>
+    <input type="text" id="newStudentCourse" value="AI Tools for Everyone">
+    <button type="button" id="addStudentBtn">Create Student Account</button>
+    <div class="msg" id="addStudentMsg"></div>
+
+    <h1 style="font-size:16px; margin-top:30px;">Existing Students</h1>
+    <div id="studentList"></div>
+  </div>
 </div>
 
 <script>
@@ -187,7 +222,22 @@
   function showApp(){
     document.getElementById('login').style.display = 'none';
     document.getElementById('app').style.display = 'block';
+    loadStudentsIntoPicker();
   }
+
+  document.getElementById('tabCerts').addEventListener('click', function(){
+    document.getElementById('certGenSection').style.display = 'block';
+    document.getElementById('studentsSection').style.display = 'none';
+    document.getElementById('tabCerts').className = 'tabBtn active';
+    document.getElementById('tabStudents').className = 'tabBtn';
+  });
+  document.getElementById('tabStudents').addEventListener('click', function(){
+    document.getElementById('certGenSection').style.display = 'none';
+    document.getElementById('studentsSection').style.display = 'block';
+    document.getElementById('tabStudents').className = 'tabBtn active';
+    document.getElementById('tabCerts').className = 'tabBtn';
+    loadStudentList();
+  });
 
   // If already logged in this session, skip straight to the generator
   if (getSession()) showApp();
@@ -225,6 +275,35 @@
     });
   });
 
+  document.getElementById('studentPicker').addEventListener('change', function(){
+    var opt = this.options[this.selectedIndex];
+    if (opt.value){
+      document.getElementById('studentName').value = opt.getAttribute('data-name');
+      document.getElementById('courseTitle').value = opt.getAttribute('data-course');
+    }
+  });
+
+  function loadStudentsIntoPicker(){
+    var token = getSession();
+    fetch(SUPABASE_URL + "/rest/v1/students?select=*", {
+      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + token }
+    })
+    .then(function(res){ return res.json(); })
+    .then(function(rows){
+      var picker = document.getElementById('studentPicker');
+      picker.innerHTML = '<option value="">— Standalone certificate, no student account —</option>';
+      (rows || []).forEach(function(s){
+        var o = document.createElement('option');
+        o.value = s.id;
+        o.textContent = s.full_name + " (" + s.email + ")";
+        o.setAttribute('data-name', s.full_name);
+        o.setAttribute('data-course', s.course_title);
+        picker.appendChild(o);
+      });
+    })
+    .catch(function(){ /* silent — picker just stays empty if this fails */ });
+  }
+
   function makeCertId(){
     var year = new Date().getFullYear();
     var rand = Math.random().toString(36).substring(2,8).toUpperCase();
@@ -257,6 +336,8 @@
     genMsg.className = "msg";
     genMsg.textContent = "Saving...";
 
+    var linkedStudentId = document.getElementById('studentPicker').value || null;
+
     fetch(SUPABASE_URL + "/rest/v1/certificates", {
       method: "POST",
       headers: {
@@ -270,7 +351,8 @@
         student_name: studentName,
         course_title: courseTitle,
         skills: skills,
-        completion_date: completionDate
+        completion_date: completionDate,
+        student_id: linkedStudentId
       })
     })
     .then(function(res){
@@ -309,6 +391,154 @@
   document.getElementById('printBtn').addEventListener('click', function(){
     window.print();
   });
+
+  // ---------- Students management ----------
+
+  document.getElementById('addStudentBtn').addEventListener('click', function(){
+    var msgEl = document.getElementById('addStudentMsg');
+    var fullName = document.getElementById('newStudentName').value.trim();
+    var email = document.getElementById('newStudentEmail').value.trim();
+    var password = document.getElementById('newStudentPassword').value;
+    var courseTitle = document.getElementById('newStudentCourse').value.trim();
+
+    if (!fullName || !email || !password){
+      msgEl.className = "msg err";
+      msgEl.textContent = "Name, email and password are required.";
+      return;
+    }
+    if (password.length < 6){
+      msgEl.className = "msg err";
+      msgEl.textContent = "Password must be at least 6 characters.";
+      return;
+    }
+
+    msgEl.className = "msg";
+    msgEl.textContent = "Creating account...";
+
+    fetch("/.netlify/functions/create-student", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        adminToken: getSession(),
+        fullName: fullName,
+        email: email,
+        password: password,
+        courseTitle: courseTitle
+      })
+    })
+    .then(function(res){ return res.json().then(function(data){ return {ok: res.ok, data: data}; }); })
+    .then(function(result){
+      if (!result.ok){
+        msgEl.className = "msg err";
+        msgEl.textContent = "Error: " + (result.data.error || "Unknown error");
+        return;
+      }
+      msgEl.className = "msg ok";
+      msgEl.textContent = "Student account created.";
+      document.getElementById('newStudentName').value = '';
+      document.getElementById('newStudentEmail').value = '';
+      document.getElementById('newStudentPassword').value = '';
+      loadStudentList();
+      loadStudentsIntoPicker();
+    })
+    .catch(function(err){
+      msgEl.className = "msg err";
+      msgEl.textContent = "Network error: " + err.message;
+    });
+  });
+
+  function loadStudentList(){
+    var token = getSession();
+    var listEl = document.getElementById('studentList');
+    listEl.innerHTML = "Loading...";
+
+    fetch(SUPABASE_URL + "/rest/v1/students?select=*", {
+      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + token }
+    })
+    .then(function(res){ return res.json(); })
+    .then(function(students){
+      if (!students || students.length === 0){
+        listEl.innerHTML = "No students yet.";
+        return;
+      }
+      listEl.innerHTML = "";
+      students.forEach(function(s){
+        fetchAndRenderStudentCard(s, listEl, token);
+      });
+    })
+    .catch(function(err){
+      listEl.innerHTML = "Error loading students: " + err.message;
+    });
+  }
+
+  function fetchAndRenderStudentCard(student, container, token){
+    fetch(SUPABASE_URL + "/rest/v1/session_progress?student_id=eq." + student.id + "&select=*&order=session_number.asc", {
+      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + token }
+    })
+    .then(function(res){ return res.json(); })
+    .then(function(sessions){
+      var card = document.createElement('div');
+      card.className = "studentCard";
+
+      var attended = (sessions || []).filter(function(s){ return s.attended; }).length;
+      var header = document.createElement('div');
+      header.innerHTML = '<div class="name">' + student.full_name + '</div>' +
+                          '<div class="email">' + student.email + ' — ' + student.course_title + ' — ' + attended + '/6 sessions attended</div>';
+      card.appendChild(header);
+
+      (sessions || []).forEach(function(sess){
+        var row = document.createElement('div');
+        row.className = "sessionRow";
+        row.innerHTML =
+          '<span class="snum">Session ' + sess.session_number + '</span>' +
+          '<label style="display:inline-flex;align-items:center;gap:4px;margin:0;"><input type="checkbox" data-field="attended" ' + (sess.attended ? 'checked' : '') + '> Attended</label>' +
+          '<input type="date" data-field="session_date" value="' + (sess.session_date || '') + '" style="width:140px;">' +
+          '<input type="text" data-field="topics_covered" placeholder="Topics covered" value="' + (sess.topics_covered ? sess.topics_covered.replace(/"/g,'&quot;') : '') + '" style="flex:1;min-width:140px;">' +
+          '<input type="text" data-field="notes" placeholder="Notes" value="' + (sess.notes ? sess.notes.replace(/"/g,'&quot;') : '') + '" style="flex:1;min-width:140px;">';
+        row.setAttribute('data-session-id', sess.id);
+        card.appendChild(row);
+      });
+
+      var saveBtn = document.createElement('button');
+      saveBtn.type = "button";
+      saveBtn.className = "miniBtn";
+      saveBtn.textContent = "Save Progress";
+      saveBtn.addEventListener('click', function(){
+        saveStudentProgress(card, token, saveBtn);
+      });
+      card.appendChild(saveBtn);
+
+      container.appendChild(card);
+    });
+  }
+
+  function saveStudentProgress(card, token, btn){
+    btn.textContent = "Saving...";
+    var rows = card.querySelectorAll('.sessionRow');
+    var updates = [];
+    rows.forEach(function(row){
+      var sessionId = row.getAttribute('data-session-id');
+      var attended = row.querySelector('[data-field="attended"]').checked;
+      var session_date = row.querySelector('[data-field="session_date"]').value || null;
+      var topics_covered = row.querySelector('[data-field="topics_covered"]').value;
+      var notes = row.querySelector('[data-field="notes"]').value;
+      updates.push(
+        fetch(SUPABASE_URL + "/rest/v1/session_progress?id=eq." + sessionId, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": SUPABASE_ANON_KEY,
+            "Authorization": "Bearer " + token,
+            "Prefer": "return=minimal"
+          },
+          body: JSON.stringify({ attended: attended, session_date: session_date, topics_covered: topics_covered, notes: notes })
+        })
+      );
+    });
+    Promise.all(updates)
+      .then(function(){ btn.textContent = "Saved ✓"; setTimeout(function(){ btn.textContent = "Save Progress"; }, 1500); })
+      .catch(function(err){ btn.textContent = "Error: " + err.message; });
+  }
 })();
 </script>
 

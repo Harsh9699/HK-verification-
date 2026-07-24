@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Student Dashboard — HK Workshop</title>
+<style>
+  :root{ --navy:#152238; --paper:#FBF8F2; --gold:#B8923E; --teal:#2F6F6B; --ink:#1C1C1C; --muted:#6B6B6B; --red:#c0392b; }
+  *{box-sizing:border-box;}
+  body{ margin:0; font-family:Georgia,serif; background:#3a3a3a; display:flex; align-items:flex-start; justify-content:center; min-height:100vh; padding:40px 20px;}
+  .banner{ position:fixed; top:0; left:0; right:0; background:var(--navy); color:#9fd; font-family:'Courier New',monospace; font-size:11px; padding:6px 12px; z-index:99; }
+  .panel{ width:100%; max-width:560px; background:var(--paper); padding:36px 40px; box-shadow:0 20px 60px rgba(0,0,0,.4); margin-top:34px;}
+  h1{ font-size:22px; color:var(--navy); margin:0 0 4px 0; }
+  .sub{ font-family:'Courier New',monospace; font-size:11px; letter-spacing:2px; color:var(--teal); text-transform:uppercase; margin-bottom:24px;}
+  label{ display:block; font-family:'Courier New',monospace; font-size:11px; letter-spacing:1px; color:var(--muted); text-transform:uppercase; margin:14px 0 4px;}
+  input{ width:100%; padding:10px; font-family:Georgia,serif; font-size:15px; border:1px solid #ccc; background:#fff;}
+  button{ margin-top:20px; width:100%; padding:12px; background:var(--navy); color:var(--paper); border:none; font-family:'Courier New',monospace; letter-spacing:1px; font-size:13px; cursor:pointer; text-transform:uppercase;}
+  button:hover{ background:var(--teal); }
+  .msg{ font-family:'Courier New',monospace; font-size:12px; margin-top:12px; }
+  .msg.err{ color:var(--red); } .msg.ok{ color:var(--teal); }
+  #dash{ display:none; }
+  .progressBar{ background:#e5e0d5; height:10px; border-radius:6px; overflow:hidden; margin:10px 0 4px 0;}
+  .progressFill{ background:var(--teal); height:100%; }
+  .sessionItem{ border-bottom:1px solid #e5e0d5; padding:12px 0; }
+  .sessionItem .snum{ font-family:'Courier New',monospace; font-size:11px; color:var(--muted); letter-spacing:1px;}
+  .sessionItem .status{ font-size:13px; font-weight:bold; }
+  .sessionItem .status.done{ color:var(--teal); }
+  .sessionItem .status.pending{ color:var(--muted); }
+  .sessionItem .topics{ font-size:14px; color:var(--ink); margin-top:4px;}
+  .sessionItem .notes{ font-size:13px; color:var(--muted); font-style:italic; margin-top:2px;}
+  .certBox{ border:1px solid var(--gold); padding:16px; margin-top:20px; text-align:center; }
+  .certBox a{ display:inline-block; margin-top:10px; background:var(--gold); color:var(--paper); padding:10px 18px; text-decoration:none; font-family:'Courier New',monospace; font-size:12px; letter-spacing:1px;}
+  .logoutLink{ display:block; text-align:center; margin-top:20px; font-family:'Courier New',monospace; font-size:11px; color:var(--muted); cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div class="banner" id="banner">Loading…</div>
+
+<div class="panel" id="login">
+  <h1>HK Workshop</h1>
+  <div class="sub">Student Login</div>
+  <label>Email</label>
+  <input type="email" id="email" autocomplete="username">
+  <label>Password</label>
+  <input type="password" id="password" autocomplete="current-password">
+  <button id="loginBtn" type="button">Log In</button>
+  <div class="msg err" id="loginMsg"></div>
+</div>
+
+<div class="panel" id="dash">
+  <h1 id="studentNameShow">Welcome</h1>
+  <div class="sub" id="courseShow">Course</div>
+
+  <label>Progress</label>
+  <div class="progressBar"><div class="progressFill" id="progressFill" style="width:0%"></div></div>
+  <div class="msg" id="progressText"></div>
+
+  <div id="sessionList" style="margin-top:20px;"></div>
+
+  <div class="certBox" id="certBox" style="display:none;">
+    <div style="font-family:'Courier New',monospace; font-size:11px; letter-spacing:2px; color:var(--teal); text-transform:uppercase;">Certificate Issued 🎉</div>
+    <a id="certLink" href="#" target="_blank">View / Verify Certificate</a>
+  </div>
+
+  <div class="logoutLink" id="logoutBtn">Log out</div>
+</div>
+
+<script>
+(function(){
+  var banner = document.getElementById('banner');
+  window.addEventListener('error', function(e){ banner.textContent = "JS Error: " + (e.message || e); });
+  window.addEventListener('unhandledrejection', function(e){ banner.textContent = "Promise Error: " + (e.reason && e.reason.message ? e.reason.message : e.reason); });
+
+  var SUPABASE_URL = "https://hdjfodduhlmrmphaxsjj.supabase.co";
+  var SUPABASE_ANON_KEY = "sb_publishable_YnubDZntig72f8Ge_7mQwQ_gVS-tZzq";
+  var SITE_URL = "https://hkcerts.netlify.app";
+
+  banner.textContent = "Script loaded OK. Ready.";
+
+  function setSession(token, uid){
+    if (token){ sessionStorage.setItem('hkw_student_token', token); sessionStorage.setItem('hkw_student_uid', uid); }
+    else { sessionStorage.removeItem('hkw_student_token'); sessionStorage.removeItem('hkw_student_uid'); }
+  }
+  function getToken(){ return sessionStorage.getItem('hkw_student_token'); }
+  function getUid(){ return sessionStorage.getItem('hkw_student_uid'); }
+
+  function showDash(){
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('dash').style.display = 'block';
+    loadDashboard();
+  }
+
+  if (getToken()) showDash();
+
+  document.getElementById('loginBtn').addEventListener('click', function(){
+    var msgEl = document.getElementById('loginMsg');
+    var email = document.getElementById('email').value.trim();
+    var password = document.getElementById('password').value;
+    if (!email || !password){ msgEl.textContent = "Enter both email and password."; return; }
+    msgEl.textContent = "Logging in...";
+
+    fetch(SUPABASE_URL + "/auth/v1/token?grant_type=password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "apikey": SUPABASE_ANON_KEY },
+      body: JSON.stringify({ email: email, password: password })
+    })
+    .then(function(res){ return res.json().then(function(data){ return {status: res.status, data: data}; }); })
+    .then(function(result){
+      if (result.status !== 200 || !result.data.access_token){
+        msgEl.textContent = "Login failed: " + (result.data.error_description || result.data.msg || "Check your email/password.");
+        return;
+      }
+      setSession(result.data.access_token, result.data.user.id);
+      msgEl.textContent = "";
+      showDash();
+    })
+    .catch(function(err){ msgEl.textContent = "Network error: " + err.message; });
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', function(){
+    setSession(null, null);
+    document.getElementById('dash').style.display = 'none';
+    document.getElementById('login').style.display = 'block';
+  });
+
+  function loadDashboard(){
+    var token = getToken();
+    var uid = getUid();
+
+    fetch(SUPABASE_URL + "/rest/v1/students?id=eq." + uid + "&select=*", {
+      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + token }
+    })
+    .then(function(res){ return res.json(); })
+    .then(function(rows){
+      if (!rows || rows.length === 0) return;
+      var student = rows[0];
+      document.getElementById('studentNameShow').textContent = "Hi, " + student.full_name;
+      document.getElementById('courseShow').textContent = student.course_title;
+    });
+
+    fetch(SUPABASE_URL + "/rest/v1/session_progress?student_id=eq." + uid + "&select=*&order=session_number.asc", {
+      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + token }
+    })
+    .then(function(res){ return res.json(); })
+    .then(function(sessions){
+      sessions = sessions || [];
+      var attended = sessions.filter(function(s){ return s.attended; }).length;
+      var pct = Math.round((attended / 6) * 100);
+      document.getElementById('progressFill').style.width = pct + "%";
+      document.getElementById('progressText').textContent = attended + " of 6 sessions completed";
+
+      var listEl = document.getElementById('sessionList');
+      listEl.innerHTML = "";
+      sessions.forEach(function(s){
+        var div = document.createElement('div');
+        div.className = "sessionItem";
+        div.innerHTML =
+          '<div class="snum">SESSION ' + s.session_number + (s.session_date ? ' — ' + s.session_date : '') + '</div>' +
+          '<div class="status ' + (s.attended ? 'done' : 'pending') + '">' + (s.attended ? '✓ Completed' : '○ Pending') + '</div>' +
+          (s.topics_covered ? '<div class="topics">' + s.topics_covered + '</div>' : '') +
+          (s.notes ? '<div class="notes">' + s.notes + '</div>' : '');
+        listEl.appendChild(div);
+      });
+    });
+
+    fetch(SUPABASE_URL + "/rest/v1/certificates?student_id=eq." + uid + "&select=*", {
+      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + token }
+    })
+    .then(function(res){ return res.json(); })
+    .then(function(certs){
+      if (certs && certs.length > 0){
+        var cert = certs[0];
+        document.getElementById('certBox').style.display = 'block';
+        document.getElementById('certLink').href = SITE_URL + "/verify.html?id=" + cert.cert_id;
+      }
+    });
+  }
+})();
+</script>
+
+</body>
+</html>
