@@ -233,7 +233,11 @@
     document.getElementById('certIdShow').textContent = data.cert_id;
     
     var verifyUrl = SITE_URL + "/verify.html?id=" + data.cert_id;
-    document.getElementById('qrImg').src = "https://quickchart.io/qr?text=" + encodeURIComponent(verifyUrl) + "&size=180";
+    if (data.qr_base64) {
+      document.getElementById('qrImg').src = data.qr_base64;
+    } else {
+      document.getElementById('qrImg').src = "https://quickchart.io/qr?text=" + encodeURIComponent(verifyUrl) + "&size=180";
+    }
     
     document.getElementById('certificateContainer').style.display = 'block';
   })

@@ -164,6 +164,14 @@
   <label>Password</label>
   <input type="password" id="password" autocomplete="current-password">
   <button id="loginBtn" type="button">Log In</button>
+  <div style="text-align:center; margin-top:16px;">
+    <a href="#" id="forgotPwdLink" style="font-size:14px; color:var(--text-muted); text-decoration:none;">Forgot password?</a>
+  </div>
+  <div id="forgotPwdSection" style="display:none; margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
+    <label>Enter your email to recover password</label>
+    <input type="email" id="recoverEmail" placeholder="your@email.com">
+    <button id="recoverBtn" type="button" class="miniBtn" style="width:100%;">Send Reset Link</button>
+  </div>
   <div class="msg err" id="loginMsg"></div>
 </div>
 
@@ -227,14 +235,49 @@
     .then(function(res){ return res.json().then(function(data){ return {status: res.status, data: data}; }); })
     .then(function(result){
       if (result.status !== 200 || !result.data.access_token){
-        msgEl.textContent = "Login failed: " + (result.data.error_description || result.data.msg || "Check your email/password.");
+        var rawError = result.data.error_description || result.data.msg || "";
+        var friendlyError = "Email or password is incorrect.";
+        if (rawError.includes("Email not confirmed")) friendlyError = "Your account isn't verified yet — contact HK Workshop.";
+        msgEl.textContent = friendlyError;
         return;
       }
       setSession(result.data.access_token, result.data.user.id);
       msgEl.textContent = "";
       showDash();
     })
-    .catch(function(err){ msgEl.textContent = "Network error: " + err.message; });
+    .catch(function(err){ msgEl.textContent = "Can't reach the server. Check your internet connection."; });
+  });
+
+  document.getElementById('forgotPwdLink').addEventListener('click', function(e){
+    e.preventDefault();
+    document.getElementById('forgotPwdSection').style.display = 'block';
+  });
+
+  document.getElementById('recoverBtn').addEventListener('click', function(){
+    var msgEl = document.getElementById('loginMsg');
+    var email = document.getElementById('recoverEmail').value.trim();
+    if (!email) { msgEl.textContent = "Enter your email to recover password."; return; }
+    msgEl.textContent = "Sending reset link...";
+    msgEl.className = "msg";
+
+    fetch(SUPABASE_URL + "/auth/v1/recover", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "apikey": SUPABASE_ANON_KEY },
+      body: JSON.stringify({ email: email })
+    })
+    .then(function(res){
+      if(res.ok) {
+        msgEl.className = "msg ok";
+        msgEl.textContent = "Check your email for the reset link.";
+      } else {
+        msgEl.className = "msg err";
+        msgEl.textContent = "Error sending reset link.";
+      }
+    })
+    .catch(function(err){
+      msgEl.className = "msg err";
+      msgEl.textContent = "Network error: " + err.message;
+    });
   });
 
   document.getElementById('logoutBtn').addEventListener('click', function(){
@@ -247,7 +290,7 @@
     var token = getToken();
     var uid = getUid();
 
-    fetch(SUPABASE_URL + "/rest/v1/students?id=eq." + uid + "&select=*", {
+    fetch(SUPABASE_URL + "/rest/v1/students?id=eq." + uid + "&active=eq.true&select=*", {
       headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + token }
     })
     .then(function(res){ return res.json(); })
