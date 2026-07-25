@@ -1,11 +1,15 @@
+const nodemailer = require('nodemailer');
+
 exports.handler = async function(event) {
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
   }
 
-  const RESEND_API_KEY = process.env.RESEND_API_KEY;
-  if (!RESEND_API_KEY) {
-    return { statusCode: 500, body: JSON.stringify({ error: 'Missing RESEND_API_KEY' }) };
+  const EMAIL_USER = process.env.EMAIL_USER;
+  const EMAIL_PASS = process.env.EMAIL_PASS;
+
+  if (!EMAIL_USER || !EMAIL_PASS) {
+    return { statusCode: 500, body: JSON.stringify({ error: 'Missing EMAIL_USER or EMAIL_PASS in Netlify environment variables.' }) };
   }
 
   try {
@@ -35,29 +39,23 @@ exports.handler = async function(event) {
       </div>
     `;
 
-    // Resend requires a verified domain in the 'from' field. We'll use 'onboarding@resend.dev' for testing, 
-    // or they can use their own domain once verified on Resend.
-    const resendReq = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${RESEND_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        from: 'HK Workshop <onboarding@resend.dev>',
-        to: [email],
-        subject: `Your Certificate for ${courseTitle || 'completion'} is ready!`,
-        html: htmlContent
-      })
+    // Create a Nodemailer transporter using Gmail
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: EMAIL_USER,
+        pass: EMAIL_PASS
+      }
     });
 
-    const resendRes = await resendReq.json();
+    const info = await transporter.sendMail({
+      from: `"HK Workshop" <${EMAIL_USER}>`,
+      to: email,
+      subject: `Your Certificate for ${courseTitle || 'completion'} is ready!`,
+      html: htmlContent
+    });
 
-    if (!resendReq.ok) {
-      return { statusCode: 400, body: JSON.stringify({ error: 'Resend API Error: ' + JSON.stringify(resendRes) }) };
-    }
-
-    return { statusCode: 200, body: JSON.stringify({ success: true, data: resendRes }) };
+    return { statusCode: 200, body: JSON.stringify({ success: true, messageId: info.messageId }) };
 
   } catch (err) {
     return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
