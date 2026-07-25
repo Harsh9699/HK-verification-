@@ -176,8 +176,16 @@
 </div>
 
 <div class="panel" id="dash">
-  <h1 id="studentNameShow">Welcome</h1>
-  <div class="sub" id="courseShow">Course</div>
+  <div style="text-align:center; margin-bottom: 20px;">
+    <div style="position:relative; display:inline-block; cursor:pointer;" id="avatarContainer">
+      <img id="studentAvatar" src="https://ui-avatars.com/api/?name=Student&background=random&size=100" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:2px solid var(--border);">
+      <div style="position:absolute; bottom:0; right:0; background:var(--primary); color:#fff; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-size:12px; box-shadow:0 2px 4px rgba(0,0,0,0.2);">📷</div>
+    </div>
+    <input type="file" id="avatarInput" accept="image/*" style="display:none;">
+    <div id="avatarMsg" style="font-size:12px; margin-top:8px;"></div>
+  </div>
+  <h1 id="studentNameShow" style="text-align:center; margin-top:0;">Welcome</h1>
+  <div class="sub" id="courseShow" style="text-align:center;">Course</div>
 
   <label>Progress</label>
   <div class="progressBar"><div class="progressFill" id="progressFill" style="width:0%"></div></div>
@@ -286,6 +294,56 @@
     document.getElementById('login').style.display = 'block';
   });
 
+  document.getElementById('avatarContainer').addEventListener('click', function() {
+    document.getElementById('avatarInput').click();
+  });
+  
+  document.getElementById('avatarInput').addEventListener('change', function(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    
+    var token = getToken();
+    var uid = getUid();
+    var msg = document.getElementById('avatarMsg');
+    
+    msg.style.color = "var(--text-muted)";
+    msg.textContent = "Uploading...";
+    
+    fetch(SUPABASE_URL + "/storage/v1/object/avatars/" + uid + "?upsert=true", {
+      method: "POST",
+      headers: {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": "Bearer " + token,
+        "Content-Type": file.type
+      },
+      body: file
+    })
+    .then(function(res){
+      if(!res.ok) throw new Error("Failed to upload image");
+      var publicUrl = SUPABASE_URL + "/storage/v1/object/public/avatars/" + uid + "?t=" + Date.now();
+      
+      return fetch(SUPABASE_URL + "/rest/v1/students?id=eq." + uid, {
+        method: "PATCH",
+        headers: {
+          "apikey": SUPABASE_ANON_KEY,
+          "Authorization": "Bearer " + token,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ avatar_url: publicUrl })
+      }).then(function(patchRes){
+        if(!patchRes.ok) throw new Error("Failed to update profile");
+        document.getElementById('studentAvatar').src = publicUrl;
+        msg.style.color = "green";
+        msg.textContent = "Profile picture updated!";
+        setTimeout(function(){ msg.textContent = ""; }, 3000);
+      });
+    })
+    .catch(function(err){
+      msg.style.color = "red";
+      msg.textContent = err.message;
+    });
+  });
+
   function loadDashboard(){
     var token = getToken();
     var uid = getUid();
@@ -299,6 +357,11 @@
       var student = rows[0];
       document.getElementById('studentNameShow').textContent = "Hi, " + student.full_name;
       document.getElementById('courseShow').textContent = student.course_title;
+      if (student.avatar_url) {
+        document.getElementById('studentAvatar').src = student.avatar_url;
+      } else {
+        document.getElementById('studentAvatar').src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(student.full_name) + "&background=random&size=100";
+      }
     });
 
     fetch(SUPABASE_URL + "/rest/v1/session_progress?student_id=eq." + uid + "&select=*&order=session_number.asc", {

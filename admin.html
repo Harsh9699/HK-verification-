@@ -313,6 +313,7 @@
         o.textContent = s.full_name + " (" + s.email + ")";
         o.setAttribute('data-name', s.full_name);
         o.setAttribute('data-course', s.course_title);
+        o.setAttribute('data-email', s.email);
         picker.appendChild(o);
       });
     })
@@ -352,6 +353,11 @@
     genMsg.textContent = "Saving...";
 
     var linkedStudentId = document.getElementById('studentPicker').value || null;
+    var studentEmail = null;
+    var pickerOpt = document.getElementById('studentPicker').options[document.getElementById('studentPicker').selectedIndex];
+    if (pickerOpt && pickerOpt.value) {
+      studentEmail = pickerOpt.getAttribute('data-email');
+    }
 
     var verifyUrl = SITE_URL + "/verify.html?id=" + certId;
     var qrUrl = "https://quickchart.io/qr?text=" + encodeURIComponent(verifyUrl) + "&size=180";
@@ -404,6 +410,19 @@
           document.getElementById('certDateBottom').textContent = prettyDate;
 
           document.getElementById('out').style.display = 'block';
+
+          if (studentEmail) {
+            fetch(SITE_URL + "/.netlify/functions/send-cert-email", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: studentEmail,
+                studentName: studentName,
+                courseTitle: courseTitle,
+                verifyUrl: verifyUrl
+              })
+            }).catch(function(e){ console.error("Email error:", e); });
+          }
         })
         .catch(function(err){
           genMsg.className = "msg err";
