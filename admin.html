@@ -88,6 +88,12 @@
     @page{ size:landscape; margin:0; }
   }
 </style>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script type="text/javascript">
+   (function(){
+      emailjs.init("kraGHzYJCpqoGsud8");
+   })();
+</script>
 </head>
 <body>
 
@@ -412,16 +418,12 @@
           document.getElementById('out').style.display = 'block';
 
           if (studentEmail) {
-            fetch(SITE_URL + "/.netlify/functions/send-cert-email", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
+            emailjs.send("service_8m6zcvo", "template_ldceg8n", {
                 email: studentEmail,
                 studentName: studentName,
                 courseTitle: courseTitle,
                 verifyUrl: verifyUrl
-              })
-            }).catch(function(e){ console.error("Email error:", e); });
+            }).catch(function(e){ console.error("EmailJS error:", e); });
           }
         })
         .catch(function(err){
