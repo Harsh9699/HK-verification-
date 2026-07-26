@@ -60,9 +60,8 @@
   #certificate .corner.bl{bottom:-2px; left:-2px; transform:scaleY(-1);}
   #certificate .corner.br{bottom:-2px; right:-2px; transform:scale(-1,-1);}
   #certificate .inner{ position:absolute; inset:48px; border:2px solid #e5e7eb; padding:46px 64px; display:flex; flex-direction:column; align-items:center; text-align:center;}
-  #certificate .brandrow{ display:flex; align-items:center; gap:12px; margin-bottom:12px;}
-  #certificate .monogram{ width:44px; height:44px; border-radius:50%; background:#111827; color:#fff; font-family:'Outfit',sans-serif; font-weight:700; font-size:17px; display:flex; align-items:center; justify-content:center; letter-spacing:0.5px;}
-  #certificate .brandname{ font-family:'Outfit',sans-serif; font-size:15px; letter-spacing:3px; font-weight:600; color:#111827; text-transform:uppercase;}
+  #certificate .brandrow{ display:flex; justify-content:center; margin-bottom:20px;}
+  #certificate .cert-logo{ height: 60px; object-fit: contain;}
   #certificate .eyebrow{ font-family:'Outfit',sans-serif; font-size:13px; font-weight:600; letter-spacing:4px; color:#4F46E5; text-transform:uppercase; margin-top:22px;}
   #certificate h2.title{ font-family:'Cormorant Garamond',serif; font-size:46px; color:#111827; margin:8px 0 2px 0; font-weight:600; letter-spacing:1px;}
   #certificate .subtitle{ font-size:16px; color:#6b7280; font-style:italic; margin-bottom:26px;}
@@ -148,8 +147,7 @@
 
       <div class="inner">
         <div class="brandrow">
-          <div class="monogram">HK</div>
-          <div class="brandname">HK Workshop</div>
+          <img src="logo.png" alt="HK Workshop Logo" class="cert-logo">
         </div>
 
         <div class="eyebrow">Certificate of Completion</div>
