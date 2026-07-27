@@ -25,7 +25,7 @@
   * { box-sizing: border-box; }
   body {
     margin: 0; font-family: 'Inter', sans-serif; background: var(--bg);
-    display: flex; min-height: 100vh; color: var(--text-main);
+    display: flex; min-height: 100vh; color: var(--text-main); overflow-x: hidden;
   }
   .banner { position: fixed; top: 0; left: 0; right: 0; background: var(--accent); color: #fff; font-weight: 500; font-size: 12px; padding: 8px 16px; z-index: 999; text-align: center; }
   
@@ -81,6 +81,9 @@
 
   /* Mobile Responsiveness */
   @media (max-width: 900px) {
+    body { display: block; }
+    #app { display: none; }
+    #app.active-app { display: block; }
     .sidebar { width: 100%; min-height: auto; position: relative; border-right: none; border-bottom: 1px solid var(--border); padding: 16px 12px; flex-direction: row; overflow-x: auto; flex-wrap: nowrap; align-items: center; justify-content: flex-start; gap: 8px; margin-top: 32px; z-index: 10;}
     .sidebar h2 { display: none; }
     .tabBtn { flex: 0 0 auto; justify-content: center; padding: 10px 14px; font-size: 13px; white-space: nowrap; }
@@ -362,7 +365,9 @@
 
   function showApp(){
     document.getElementById('login').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
+    var app = document.getElementById('app');
+    app.style.display = 'block';
+    app.classList.add('active-app');
     loadStudentsIntoPicker();
   }
 
@@ -859,11 +864,13 @@
       header.style.justifyContent = "space-between";
       header.style.alignItems = "flex-start";
       header.style.marginBottom = "16px";
-      header.innerHTML = '<div>' +
-        '<div class="name"><input type="text" value="' + student.full_name + '" id="edit-name-' + student.id + '" disabled style="background:transparent;border:none;font-weight:700;font-size:16px;color:var(--text-main);width:200px;font-family:inherit;">' + (!isActive ? ' <span style="font-size:12px;color:var(--red);font-weight:600;">(Deactivated)</span>' : '') + '</div>' +
-        '<div class="email" style="margin-top:4px;"><input type="text" value="' + student.email + '" id="edit-email-' + student.id + '" disabled style="background:transparent;border:none;color:var(--text-muted);width:180px;font-family:inherit;"> — <input type="text" value="' + student.course_title + '" id="edit-course-' + student.id + '" disabled style="background:transparent;border:none;color:var(--text-muted);width:150px;font-family:inherit;"> — ' + attended + '/6 attended</div>' +
+      header.style.flexWrap = "wrap";
+      header.style.gap = "12px";
+      header.innerHTML = '<div style="flex:1; min-width:200px;">' +
+        '<div class="name"><input type="text" value="' + student.full_name + '" id="edit-name-' + student.id + '" disabled style="background:transparent;border:none;font-weight:700;font-size:16px;color:var(--text-main);width:100%;max-width:200px;font-family:inherit;padding:0;">' + (!isActive ? ' <span style="font-size:12px;color:var(--red);font-weight:600;">(Deactivated)</span>' : '') + '</div>' +
+        '<div class="email" style="margin-top:4px; display:flex; flex-wrap:wrap; gap:4px; align-items:center; font-size:13px; color:var(--text-muted);"><input type="text" value="' + student.email + '" id="edit-email-' + student.id + '" disabled style="background:transparent;border:none;color:var(--text-muted);width:100%;max-width:180px;font-family:inherit;padding:0;"> — <input type="text" value="' + student.course_title + '" id="edit-course-' + student.id + '" disabled style="background:transparent;border:none;color:var(--text-muted);width:100%;max-width:150px;font-family:inherit;padding:0;"> — <span>' + attended + '/6 attended</span></div>' +
         '</div>' +
-        '<div style="display:flex;gap:8px;">' +
+        '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
         '<button type="button" class="miniBtn" id="btn-view-' + student.id + '">View Reports</button>' +
         '<button type="button" class="miniBtn" id="btn-edit-' + student.id + '">Edit</button>' +
         '<button type="button" class="miniBtn" id="btn-deactivate-' + student.id + '" style="background:'+btnColor+';color:white;border-color:'+btnColor+';">' + btnText + '</button>' +
