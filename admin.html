@@ -697,7 +697,14 @@
         setTimeout(function(){ msg.textContent=''; }, 2000);
         loadAssignmentsAdmin();
       } else {
-        msg.className="msg err"; msg.textContent="Failed to publish.";
+        res.json().then(function(errData) {
+            var errMsg = errData.message || errData.error || JSON.stringify(errData);
+            msg.className="msg err";
+            msg.textContent="Failed to publish: " + errMsg;
+            console.error("Publish Error:", errData);
+        }).catch(function(e) {
+            msg.className="msg err"; msg.textContent="Failed to publish. Server returned status " + res.status;
+        });
       }
     });
   });
