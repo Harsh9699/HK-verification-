@@ -510,7 +510,7 @@
 
   async function loadModels() {
     if(modelsLoaded) return;
-    await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
+    await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
     await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
     await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
     modelsLoaded = true;
@@ -526,7 +526,7 @@
     msg.textContent = "Starting camera...";
     var video = document.getElementById('enrollVideo');
     try {
-      var stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      var stream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: false });
       video.srcObject = stream;
       msg.textContent = "Camera ready. Position face clearly, then click Capture.";
     } catch(e) {
@@ -538,7 +538,7 @@
     var msg = document.getElementById('enrollMsg');
     var video = document.getElementById('enrollVideo');
     msg.textContent = "Detecting face...";
-    var detection = await faceapi.detectSingleFace(video).withFaceLandmarks().withFaceDescriptor();
+    var detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 416 })).withFaceLandmarks().withFaceDescriptor();
     if(!detection) {
       msg.textContent = "No face detected! Try better lighting or look straight at the camera.";
       return;
@@ -586,14 +586,14 @@
     status.textContent = "Starting camera...";
     var video = document.getElementById('kioskVideo');
     try {
-      kioskStream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: false });
+      kioskStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 }, audio: false });
       video.srcObject = kioskStream;
       status.textContent = "Kiosk Active! Scanning for faces...";
       status.style.background = "#10B981"; // green active state
       
       // Recognition Loop
       kioskInterval = setInterval(async () => {
-         var detections = await faceapi.detectAllFaces(video).withFaceLandmarks().withFaceDescriptors();
+         var detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 416 })).withFaceLandmarks().withFaceDescriptors();
          for(let d of detections) {
             var match = faceMatcher.findBestMatch(d.descriptor);
             if(match.label !== 'unknown' && match.distance < 0.55) {
@@ -603,10 +603,12 @@
                if(!recentlyMarked.has(studentId)) {
                   recentlyMarked.add(studentId);
                   markStudentAttendance(studentId, fullName);
+                  // Remove from cooldown after 6 seconds so they can trigger it again if needed
+                  setTimeout(() => { recentlyMarked.delete(studentId); }, 6000);
                }
             }
          }
-      }, 1500); // scan every 1.5s
+      }, 500); // scan every 500ms (blazing fast!)
       
     } catch(e) {
       status.textContent = "Camera Error: " + e.message;
@@ -623,17 +625,27 @@
       headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + getSession() }
     }).then(r=>r.json()).then(rows => {
        if(rows && rows.length > 0) {
-          fetch(SUPABASE_URL + "/rest/v1/session_progress?id=eq."+rows[0].id, {
-             method: "PATCH",
-             headers: { "Content-Type": "application/json", "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + getSession() },
-             body: JSON.stringify({ attended: true, session_date: new Date().toISOString().split('T')[0] })
-          }).then(r => {
-             flash.innerHTML = "✅ Welcome, <b>" + fullName + "</b>!<br><span style='font-size:14px;'>Attendance marked for Session " + sessionNum + "</span>";
+          if(rows[0].attended === true) {
+             flash.innerHTML = "⚠️ <b>" + fullName + "</b><br><span style='font-size:14px;'>Your attendance is already done!</span>";
+             flash.style.background = "#FEF3C7";
+             flash.style.color = "#92400E";
+             flash.style.borderColor = "#F59E0B";
              flash.style.display = 'block';
-             setTimeout(() => { flash.style.display = 'none'; }, 4000);
-             // Allow them to be scanned again after 30 seconds (just in case they need to re-scan for another reason, though it won't duplicate)
-             setTimeout(() => { recentlyMarked.delete(studentId); }, 30000);
-          });
+             setTimeout(() => { flash.style.display = 'none'; }, 3000);
+          } else {
+             fetch(SUPABASE_URL + "/rest/v1/session_progress?id=eq."+rows[0].id, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json", "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + getSession() },
+                body: JSON.stringify({ attended: true, session_date: new Date().toISOString().split('T')[0] })
+             }).then(r => {
+                flash.innerHTML = "✅ Welcome, <b>" + fullName + "</b>!<br><span style='font-size:14px;'>Attendance marked for Session " + sessionNum + "</span>";
+                flash.style.background = "#D1FAE5";
+                flash.style.color = "#065F46";
+                flash.style.borderColor = "#10B981";
+                flash.style.display = 'block';
+                setTimeout(() => { flash.style.display = 'none'; }, 4000);
+             });
+          }
        }
     });
   }
