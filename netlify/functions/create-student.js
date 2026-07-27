@@ -11,7 +11,7 @@ exports.handler = async function(event) {
 
   try {
     const body = JSON.parse(event.body);
-    const { adminToken, fullName, email, password, courseTitle } = body;
+    const { adminToken, fullName, email, password, courseTitle, faceDescriptor } = body;
 
     if (!adminToken || !fullName || !email || !password) {
       return { statusCode: 400, body: JSON.stringify({ error: 'Missing required fields' }) };
@@ -64,7 +64,8 @@ exports.handler = async function(event) {
         id: newUserId,
         full_name: fullName,
         email: email,
-        course_title: courseTitle || 'AI Tools for Everyone'
+        course_title: courseTitle || 'AI Tools for Everyone',
+        face_descriptor: faceDescriptor || null
       })
     });
 

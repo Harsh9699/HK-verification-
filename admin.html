@@ -88,6 +88,7 @@
   }
 </style>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
 <script type="text/javascript">
    (function(){
       emailjs.init("kraGHzYJCpqoGsud8");
@@ -114,7 +115,8 @@
   <div class="sub" id="tabRow">
     <span class="tabBtn active" id="tabCerts">Certificates</span> &nbsp;|&nbsp;
     <span class="tabBtn" id="tabStudents">Students</span> &nbsp;|&nbsp;
-    <span class="tabBtn" id="tabAssignments">Assignments</span>
+    <span class="tabBtn" id="tabAssignments">Assignments</span> &nbsp;|&nbsp;
+    <span class="tabBtn" id="tabKiosk">Face Kiosk</span>
   </div>
 
   <div id="certGenSection">
@@ -200,11 +202,50 @@
     <input type="password" id="newStudentPassword">
     <label>Course Title</label>
     <input type="text" id="newStudentCourse" value="AI Tools for Everyone">
+    
+    <label>Face Biometrics (Optional)</label>
+    <div style="display:flex; gap:12px; align-items:center;">
+      <button type="button" id="startEnrollBtn" style="width:auto; margin:0; background:#4F46E5;">📸 Scan Face</button>
+      <span id="enrollStatus" style="font-size:13px; font-weight:600; color:var(--text-muted);">No face enrolled</span>
+    </div>
+    
+    <div id="enrollBox" style="display:none; margin-top:16px; background:#111827; border-radius:12px; padding:16px; text-align:center;">
+      <video id="enrollVideo" autoplay muted playsinline style="width:100%; max-width:400px; border-radius:8px; transform: scaleX(-1);"></video>
+      <button type="button" id="captureFaceBtn" style="background:#10B981;">Capture & Save Descriptor</button>
+      <div id="enrollMsg" style="font-size:13px; color:#fff; margin-top:8px;"></div>
+    </div>
+
     <button type="button" id="addStudentBtn">Create Student Account</button>
     <div class="msg" id="addStudentMsg"></div>
 
     <h1 style="font-size:16px; margin-top:30px;">Existing Students</h1>
     <div id="studentList"></div>
+  </div>
+
+  <div id="kioskSection" style="display:none;">
+    <h1 style="font-size:20px; margin-top:10px;">Face Recognition Kiosk</h1>
+    <p style="font-size:14px; color:var(--text-muted); line-height:1.5;">Set up a device at the door. When students walk in, the camera will recognize them and instantly mark their attendance for the active session.</p>
+    
+    <label>Active Session</label>
+    <select id="kioskSessionSelect">
+      <option value="1">Session 1</option>
+      <option value="2">Session 2</option>
+      <option value="3">Session 3</option>
+      <option value="4">Session 4</option>
+      <option value="5">Session 5</option>
+      <option value="6">Session 6</option>
+    </select>
+    
+    <button type="button" id="startKioskBtn" style="background:#4F46E5; margin-top:24px; padding:16px; font-size:16px;">🚀 Start Auto-Attendance Kiosk</button>
+    
+    <div id="kioskUI" style="display:none; margin-top:24px; position:relative; background:#0f172a; border-radius:16px; overflow:hidden; border:2px solid #334155; text-align:center;">
+      <video id="kioskVideo" autoplay muted playsinline style="width:100%; max-height:400px; object-fit:cover; transform: scaleX(-1);"></video>
+      <div id="kioskStatus" style="position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.8); color:#fff; padding:12px; font-weight:600; font-size:14px;">Initializing Models...</div>
+    </div>
+    
+    <div id="kioskSuccessFlash" style="display:none; margin-top:16px; background:#D1FAE5; color:#065F46; padding:16px; border-radius:12px; text-align:center; font-weight:700; font-size:18px; border:1px solid #10B981;">
+      Welcome!
+    </div>
   </div>
 
   <div id="assignmentsSection" style="display:none;">
@@ -255,32 +296,24 @@
     loadStudentsIntoPicker();
   }
 
-  document.getElementById('tabCerts').addEventListener('click', function(){
-    document.getElementById('certGenSection').style.display = 'block';
-    document.getElementById('studentsSection').style.display = 'none';
-    document.getElementById('assignmentsSection').style.display = 'none';
-    document.getElementById('tabCerts').className = 'tabBtn active';
-    document.getElementById('tabStudents').className = 'tabBtn';
-    document.getElementById('tabAssignments').className = 'tabBtn';
-  });
-  document.getElementById('tabStudents').addEventListener('click', function(){
-    document.getElementById('certGenSection').style.display = 'none';
-    document.getElementById('studentsSection').style.display = 'block';
-    document.getElementById('assignmentsSection').style.display = 'none';
-    document.getElementById('tabStudents').className = 'tabBtn active';
-    document.getElementById('tabCerts').className = 'tabBtn';
-    document.getElementById('tabAssignments').className = 'tabBtn';
-    loadStudentList();
-  });
-  document.getElementById('tabAssignments').addEventListener('click', function(){
+  function switchTab(tabId) {
     document.getElementById('certGenSection').style.display = 'none';
     document.getElementById('studentsSection').style.display = 'none';
-    document.getElementById('assignmentsSection').style.display = 'block';
-    document.getElementById('tabAssignments').className = 'tabBtn active';
-    document.getElementById('tabCerts').className = 'tabBtn';
-    document.getElementById('tabStudents').className = 'tabBtn';
-    loadAssignmentsAdmin();
-  });
+    document.getElementById('assignmentsSection').style.display = 'none';
+    document.getElementById('kioskSection').style.display = 'none';
+    document.querySelectorAll('.tabBtn').forEach(t => t.className = 'tabBtn');
+    
+    document.getElementById(tabId).className = 'tabBtn active';
+    if(tabId === 'tabCerts') document.getElementById('certGenSection').style.display = 'block';
+    if(tabId === 'tabStudents') { document.getElementById('studentsSection').style.display = 'block'; loadStudentList(); }
+    if(tabId === 'tabAssignments') { document.getElementById('assignmentsSection').style.display = 'block'; loadAssignmentsAdmin(); }
+    if(tabId === 'tabKiosk') document.getElementById('kioskSection').style.display = 'block';
+  }
+
+  document.getElementById('tabCerts').addEventListener('click', () => switchTab('tabCerts'));
+  document.getElementById('tabStudents').addEventListener('click', () => switchTab('tabStudents'));
+  document.getElementById('tabAssignments').addEventListener('click', () => switchTab('tabAssignments'));
+  document.getElementById('tabKiosk').addEventListener('click', () => switchTab('tabKiosk'));
 
   // If already logged in this session, skip straight to the generator
   if (getSession()) showApp();
@@ -468,6 +501,143 @@
     window.print();
   });
 
+  // ---------- Face API Logic ----------
+  let modelsLoaded = false;
+  let newStudentFaceDescriptor = null;
+  let kioskStream = null;
+  let kioskInterval = null;
+  const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+
+  async function loadModels() {
+    if(modelsLoaded) return;
+    await faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL);
+    await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+    await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+    modelsLoaded = true;
+  }
+
+  // Enrollment
+  document.getElementById('startEnrollBtn').addEventListener('click', async function(){
+    var box = document.getElementById('enrollBox');
+    var msg = document.getElementById('enrollMsg');
+    box.style.display = 'block';
+    msg.textContent = "Loading AI models... please wait.";
+    await loadModels();
+    msg.textContent = "Starting camera...";
+    var video = document.getElementById('enrollVideo');
+    try {
+      var stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      video.srcObject = stream;
+      msg.textContent = "Camera ready. Position face clearly, then click Capture.";
+    } catch(e) {
+      msg.textContent = "Camera Error: " + e.message;
+    }
+  });
+
+  document.getElementById('captureFaceBtn').addEventListener('click', async function(){
+    var msg = document.getElementById('enrollMsg');
+    var video = document.getElementById('enrollVideo');
+    msg.textContent = "Detecting face...";
+    var detection = await faceapi.detectSingleFace(video).withFaceLandmarks().withFaceDescriptor();
+    if(!detection) {
+      msg.textContent = "No face detected! Try better lighting or look straight at the camera.";
+      return;
+    }
+    newStudentFaceDescriptor = Array.from(detection.descriptor);
+    msg.textContent = "Face successfully extracted! You can close the camera.";
+    document.getElementById('enrollStatus').textContent = "✅ Face Enrolled Successfully!";
+    document.getElementById('enrollStatus').style.color = "#10B981";
+    // Stop camera
+    video.srcObject.getTracks().forEach(t => t.stop());
+    setTimeout(() => { document.getElementById('enrollBox').style.display = 'none'; }, 1000);
+  });
+  
+  // Kiosk
+  let faceMatcher = null;
+  let recentlyMarked = new Set();
+  
+  document.getElementById('startKioskBtn').addEventListener('click', async function(){
+    var ui = document.getElementById('kioskUI');
+    var status = document.getElementById('kioskStatus');
+    ui.style.display = 'block';
+    status.textContent = "Loading AI models... (takes a few seconds)";
+    await loadModels();
+    
+    status.textContent = "Fetching student biometrics...";
+    var token = getSession();
+    var res = await fetch(SUPABASE_URL + "/rest/v1/students?active=eq.true&select=id,full_name,face_descriptor", {
+      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + token }
+    });
+    var students = await res.json();
+    var labeledDescriptors = [];
+    students.forEach(s => {
+      if(s.face_descriptor && Array.isArray(s.face_descriptor)) {
+        labeledDescriptors.push(new faceapi.LabeledFaceDescriptors(s.id + "::" + s.full_name, [new Float32Array(s.face_descriptor)]));
+      }
+    });
+    
+    if(labeledDescriptors.length === 0) {
+      status.textContent = "Error: No students have face biometrics enrolled!";
+      return;
+    }
+    
+    faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.55); // 0.55 is a good strict threshold
+    
+    status.textContent = "Starting camera...";
+    var video = document.getElementById('kioskVideo');
+    try {
+      kioskStream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: false });
+      video.srcObject = kioskStream;
+      status.textContent = "Kiosk Active! Scanning for faces...";
+      status.style.background = "#10B981"; // green active state
+      
+      // Recognition Loop
+      kioskInterval = setInterval(async () => {
+         var detections = await faceapi.detectAllFaces(video).withFaceLandmarks().withFaceDescriptors();
+         for(let d of detections) {
+            var match = faceMatcher.findBestMatch(d.descriptor);
+            if(match.label !== 'unknown' && match.distance < 0.55) {
+               var parts = match.label.split("::");
+               var studentId = parts[0];
+               var fullName = parts[1];
+               if(!recentlyMarked.has(studentId)) {
+                  recentlyMarked.add(studentId);
+                  markStudentAttendance(studentId, fullName);
+               }
+            }
+         }
+      }, 1500); // scan every 1.5s
+      
+    } catch(e) {
+      status.textContent = "Camera Error: " + e.message;
+      status.style.background = "#EF4444";
+    }
+  });
+  
+  function markStudentAttendance(studentId, fullName) {
+    var sessionNum = document.getElementById('kioskSessionSelect').value;
+    var flash = document.getElementById('kioskSuccessFlash');
+    
+    // Find the session_progress row for this student and session
+    fetch(SUPABASE_URL + "/rest/v1/session_progress?student_id=eq."+studentId+"&session_number=eq."+sessionNum, {
+      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + getSession() }
+    }).then(r=>r.json()).then(rows => {
+       if(rows && rows.length > 0) {
+          fetch(SUPABASE_URL + "/rest/v1/session_progress?id=eq."+rows[0].id, {
+             method: "PATCH",
+             headers: { "Content-Type": "application/json", "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + getSession() },
+             body: JSON.stringify({ attended: true, session_date: new Date().toISOString().split('T')[0] })
+          }).then(r => {
+             flash.innerHTML = "✅ Welcome, <b>" + fullName + "</b>!<br><span style='font-size:14px;'>Attendance marked for Session " + sessionNum + "</span>";
+             flash.style.display = 'block';
+             setTimeout(() => { flash.style.display = 'none'; }, 4000);
+             // Allow them to be scanned again after 30 seconds (just in case they need to re-scan for another reason, though it won't duplicate)
+             setTimeout(() => { recentlyMarked.delete(studentId); }, 30000);
+          });
+       }
+    });
+  }
+
   // ---------- Students management ----------
 
   document.getElementById('addStudentBtn').addEventListener('click', function(){
@@ -499,7 +669,8 @@
         fullName: fullName,
         email: email,
         password: password,
-        courseTitle: courseTitle
+        courseTitle: courseTitle,
+        faceDescriptor: newStudentFaceDescriptor
       })
     })
     .then(function(res){ return res.json().then(function(data){ return {ok: res.ok, data: data}; }); })
@@ -514,6 +685,9 @@
       document.getElementById('newStudentName').value = '';
       document.getElementById('newStudentEmail').value = '';
       document.getElementById('newStudentPassword').value = '';
+      newStudentFaceDescriptor = null;
+      document.getElementById('enrollStatus').textContent = "No face enrolled";
+      document.getElementById('enrollStatus').style.color = "var(--text-muted)";
       loadStudentList();
       loadStudentsIntoPicker();
     })
