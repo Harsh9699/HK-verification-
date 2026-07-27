@@ -804,7 +804,7 @@
     var listEl = document.getElementById('studentList');
     listEl.innerHTML = "Loading...";
 
-    fetch(SUPABASE_URL + "/rest/v1/students?select=*&active=eq.true", {
+    fetch(SUPABASE_URL + "/rest/v1/students?select=*", {
       headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + token }
     })
     .then(function(res){ return res.json(); })
@@ -833,18 +833,24 @@
       card.className = "studentCard";
 
       var attended = (sessions || []).filter(function(s){ return s.attended; }).length;
+      var isActive = student.active !== false; // handle null/true as active
+      if (!isActive) card.style.opacity = "0.5";
+
+      var btnText = isActive ? "Deactivate" : "Reactivate";
+      var btnColor = isActive ? "#ef4444" : "#10B981";
+
       var header = document.createElement('div');
       header.style.display = "flex";
       header.style.justifyContent = "space-between";
       header.style.alignItems = "flex-start";
       header.style.marginBottom = "16px";
       header.innerHTML = '<div>' +
-        '<div class="name"><input type="text" value="' + student.full_name + '" id="edit-name-' + student.id + '" disabled style="background:transparent;border:none;font-weight:700;font-size:16px;color:var(--text-main);width:200px;font-family:inherit;"></div>' +
+        '<div class="name"><input type="text" value="' + student.full_name + '" id="edit-name-' + student.id + '" disabled style="background:transparent;border:none;font-weight:700;font-size:16px;color:var(--text-main);width:200px;font-family:inherit;">' + (!isActive ? ' <span style="font-size:12px;color:var(--red);font-weight:600;">(Deactivated)</span>' : '') + '</div>' +
         '<div class="email" style="margin-top:4px;"><input type="text" value="' + student.email + '" id="edit-email-' + student.id + '" disabled style="background:transparent;border:none;color:var(--text-muted);width:180px;font-family:inherit;"> — <input type="text" value="' + student.course_title + '" id="edit-course-' + student.id + '" disabled style="background:transparent;border:none;color:var(--text-muted);width:150px;font-family:inherit;"> — ' + attended + '/6 attended</div>' +
         '</div>' +
         '<div style="display:flex;gap:8px;">' +
         '<button type="button" class="miniBtn" id="btn-edit-' + student.id + '">Edit</button>' +
-        '<button type="button" class="miniBtn" id="btn-deactivate-' + student.id + '" style="background:#ef4444;color:white;border-color:#ef4444;">Deactivate</button>' +
+        '<button type="button" class="miniBtn" id="btn-deactivate-' + student.id + '" style="background:'+btnColor+';color:white;border-color:'+btnColor+';">' + btnText + '</button>' +
         '</div>';
       card.appendChild(header);
 
@@ -887,14 +893,23 @@
       });
 
       btnDeactivate.addEventListener('click', function(){
-        if(confirm("Deactivate this student? They will no longer be able to log in or appear here.")) {
+        var action = isActive ? "Deactivate" : "Reactivate";
+        var confirmMsg = isActive ? 
+          "Deactivate this student? They will no longer be able to log in." : 
+          "Reactivate this student? They will be able to log in again.";
+        
+        if(confirm(confirmMsg)) {
           btnDeactivate.textContent = "...";
           fetch(SUPABASE_URL + "/rest/v1/students?id=eq." + student.id, {
             method: "PATCH",
             headers: { "Content-Type": "application/json", "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + token },
-            body: JSON.stringify({ active: false })
+            body: JSON.stringify({ active: !isActive })
           }).then(function(res){
-            if(res.ok) card.style.display = "none";
+            if(res.ok) {
+               // Re-render the list to show updated status
+               loadStudentList();
+               loadStudentsIntoPicker();
+            }
             else btnDeactivate.textContent = "Error";
           });
         }
