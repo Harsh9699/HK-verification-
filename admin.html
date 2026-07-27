@@ -214,7 +214,10 @@
           <option value="6">Session 6</option>
         </select>
         
-        <button type="button" id="startKioskBtn" style="margin-top:24px; padding:16px; font-size:16px;">🚀 Start Auto-Attendance Kiosk</button>
+        <div style="display:flex; gap:12px; margin-top:24px;">
+          <button type="button" id="startKioskBtn" style="padding:16px; font-size:16px; margin-top:0;">🚀 Start Auto-Attendance Kiosk</button>
+          <button type="button" id="stopKioskBtn" style="display:none; background:var(--red); padding:16px; font-size:16px; margin-top:0; box-shadow:none;">🛑 Stop Kiosk</button>
+        </div>
         
         <div id="kioskUI" style="display:none; margin-top:24px; position:relative; background:#000; border-radius:16px; overflow:hidden; border:1px solid var(--border); text-align:center;">
           <video id="kioskVideo" autoplay muted playsinline style="width:100%; object-fit:cover; transform: scaleX(-1);"></video>
@@ -370,6 +373,14 @@
     document.getElementById('kioskSection').style.display = 'none';
     document.querySelectorAll('.tabBtn').forEach(t => t.className = 'tabBtn');
     
+    if(tabId !== 'tabKiosk') {
+       if(typeof kioskInterval !== 'undefined' && kioskInterval) clearInterval(kioskInterval);
+       if(typeof kioskStream !== 'undefined' && kioskStream) kioskStream.getTracks().forEach(t => t.stop());
+       if(document.getElementById('kioskUI')) document.getElementById('kioskUI').style.display = 'none';
+       if(document.getElementById('startKioskBtn')) document.getElementById('startKioskBtn').style.display = 'block';
+       if(document.getElementById('stopKioskBtn')) document.getElementById('stopKioskBtn').style.display = 'none';
+    }
+
     document.getElementById(tabId).className = 'tabBtn active';
     if(tabId === 'tabCerts') document.getElementById('certGenSection').style.display = 'block';
     if(tabId === 'tabStudents') { document.getElementById('studentsSection').style.display = 'block'; loadStudentList(); }
@@ -627,6 +638,8 @@
     var ui = document.getElementById('kioskUI');
     var status = document.getElementById('kioskStatus');
     ui.style.display = 'block';
+    document.getElementById('startKioskBtn').style.display = 'none';
+    document.getElementById('stopKioskBtn').style.display = 'block';
     status.textContent = "Loading AI models... (takes a few seconds)";
     await loadModels();
     
@@ -680,9 +693,19 @@
     } catch(e) {
       status.textContent = "Camera Error: " + e.message;
       status.style.background = "#EF4444";
+      document.getElementById('startKioskBtn').style.display = 'block';
+      document.getElementById('stopKioskBtn').style.display = 'none';
     }
   });
   
+  document.getElementById('stopKioskBtn').addEventListener('click', function(){
+    if(kioskInterval) clearInterval(kioskInterval);
+    if(kioskStream) kioskStream.getTracks().forEach(t => t.stop());
+    document.getElementById('kioskUI').style.display = 'none';
+    document.getElementById('startKioskBtn').style.display = 'block';
+    document.getElementById('stopKioskBtn').style.display = 'none';
+  });
+
   function markStudentAttendance(studentId, fullName) {
     var sessionNum = document.getElementById('kioskSessionSelect').value;
     var flash = document.getElementById('kioskSuccessFlash');
