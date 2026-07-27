@@ -465,13 +465,20 @@
     var token = getToken();
     var uid = getUid();
 
-    // Profile
+    // Profile & Activation Check
     fetch(SUPABASE_URL + "/rest/v1/students?id=eq." + uid + "&select=*", {
       headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + token }
     })
     .then(res => res.json())
     .then(rows => {
-      if (!rows || rows.length === 0) return;
+      if (!rows || rows.length === 0 || rows[0].active === false) {
+        // Student is deactivated or deleted
+        setSession(null, null);
+        document.getElementById('dashboardView').style.display = 'none';
+        document.getElementById('loginView').style.display = 'flex';
+        showMsg('loginMsg', "Your account has been deactivated by the administrator.", "err");
+        return;
+      }
       var student = rows[0];
       document.getElementById('studentNameShow').textContent = student.full_name;
       document.getElementById('courseShow').textContent = student.course_title || "AI Tools for Everyone";
