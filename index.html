@@ -125,6 +125,27 @@
   .module-title { font-size: 18px; font-weight: 700; margin: 0 0 8px 0; }
   .module-desc { color: var(--text-muted); font-size: 14px; margin: 0; }
 
+  /* Timeline Curriculum */
+  .phase-block { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 24px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.02); transition: border-color 0.3s;}
+  .phase-block:hover { border-color: #cbd5e1; }
+  body.dark-theme .phase-block:hover { border-color: #475569; }
+  .phase-title { background: #f8fafc; margin: 0; padding: 20px 24px; font-size: 18px; font-weight: 700; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;}
+  .phase-title span { font-size: 13px; color: var(--text-muted); font-weight: 600; background: #e2e8f0; padding: 4px 12px; border-radius: 20px; }
+  
+  body.dark-theme .phase-title { background: #1e293b; border-bottom: 1px solid var(--border); }
+  body.dark-theme .phase-title span { background: #334155; color: #cbd5e1; }
+  
+  .day-list { padding: 0; margin: 0; list-style: none; }
+  .day-item { display: flex; padding: 24px; border-bottom: 1px solid var(--border); gap: 24px; align-items: flex-start; }
+  .day-item:last-child { border-bottom: none; }
+  .day-num { flex-shrink: 0; background: var(--primary); color: #fff; font-weight: 700; font-size: 14px; padding: 8px 16px; border-radius: 8px; text-align: center; min-width: 80px; }
+  .day-content { flex: 1; }
+  .day-content h4 { margin: 0 0 8px 0; font-size: 18px; font-weight: 700; color: var(--text-main); }
+  .day-content p { margin: 0 0 12px 0; font-size: 15px; color: var(--text-muted); line-height: 1.6; }
+  .day-tools { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--secondary); background: rgba(217, 119, 6, 0.1); padding: 6px 12px; border-radius: 20px; }
+  body.dark-theme .day-tools { background: rgba(217, 119, 6, 0.2); }
+
+
   /* Instructor Section */
   .instructor { display: flex; gap: 40px; background: #fff; padding: 48px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.04); align-items: center; flex-wrap: wrap;}
   .instructor-avatar { width: 140px; height: 140px; border-radius: 50%; object-fit: cover; box-shadow: 0 10px 25px rgba(0,0,0,0.1); flex-shrink: 0; border: 4px solid #fff;}
@@ -153,6 +174,9 @@
     .hero { padding: 80px 16px; }
     .hero h1 { font-size: 36px; }
     .instructor { padding: 32px; flex-direction: column; text-align: center; }
+    
+    .day-item { flex-direction: column; gap: 12px; padding: 20px; }
+    .day-num { width: fit-content; min-width: 0; }
   }
 </style>
 </head>
@@ -210,40 +234,160 @@
 </div>
 
 <div class="section" id="curriculum">
-  <h2 class="section-title">Course Curriculum</h2>
-  <p class="section-subtitle">A highly practical, hands-on training program covering the most powerful AI tools available today.</p>
+  <div class="badge" style="display:block; width:fit-content; margin:0 auto 16px auto;">15-Day Masterclass</div>
+  <h2 class="section-title" style="margin-bottom:8px;">Course Curriculum</h2>
+  <p class="section-subtitle">From Zero to Your First Live AI-Built Website. No prior tech knowledge required.</p>
   
-  <div class="grid">
-    <div class="module-card">
-      <div class="module-icon">🧠</div>
-      <h3 class="module-title">Prompt Engineering</h3>
-      <p class="module-desc">Learn the exact frameworks to talk to AI effectively and get high-quality, precise outputs every single time.</p>
+  <div class="curriculum-container">
+    
+    <!-- Phase 1 -->
+    <div class="phase-block">
+      <h3 class="phase-title">Phase 1: Foundation — Understanding AI <span>Day 1–3</span></h3>
+      <div class="day-list">
+        <div class="day-item">
+          <div class="day-num">Day 1</div>
+          <div class="day-content">
+            <h4>What is AI, Really?</h4>
+            <p>We explain AI using everyday analogies — think of it as a very well-read friend. We clarify the difference between a normal app and an AI tool with a live interactive demo.</p>
+            <div class="day-tools">🛠️ Tools: ChatGPT (free), Google Gemini — demo only</div>
+          </div>
+        </div>
+        <div class="day-item">
+          <div class="day-num">Day 2</div>
+          <div class="day-content">
+            <h4>How Does AI Actually Work? (No Jargon)</h4>
+            <p>Introduce the idea of "pattern recognition" without any math. We cover the different types of AI at a glance: chat-based, image-based, video-based, and voice-based.</p>
+            <div class="day-tools">💡 Concept-focused session</div>
+          </div>
+        </div>
+        <div class="day-item">
+          <div class="day-num">Day 3</div>
+          <div class="day-content">
+            <h4>First Hands-On Session</h4>
+            <p>Every student creates their own free account. Practice asking simple, everyday questions to build comfort and completely remove the fear of "using AI".</p>
+            <div class="day-tools">🛠️ Tools: ChatGPT, Google Gemini (free accounts)</div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="module-card">
-      <div class="module-icon">📝</div>
-      <h3 class="module-title">NotebookLM & Research</h3>
-      <p class="module-desc">Synthesize massive amounts of data, PDFs, and articles instantly using Google's NotebookLM.</p>
+
+    <!-- Phase 2 -->
+    <div class="phase-block">
+      <h3 class="phase-title">Phase 2: Basic Tool Usage <span>Day 4–7</span></h3>
+      <div class="day-list">
+        <div class="day-item">
+          <div class="day-num">Day 4</div>
+          <div class="day-content">
+            <h4>Asking Good Questions (Prompting Basics)</h4>
+            <p>Learn that clearer questions get better answers. We show side-by-side examples of a weak prompt vs. a strong prompt and how the output changes.</p>
+            <div class="day-tools">🛠️ Tools: ChatGPT</div>
+          </div>
+        </div>
+        <div class="day-item">
+          <div class="day-num">Day 5</div>
+          <div class="day-content">
+            <h4>AI for Studies & Work</h4>
+            <p>Use AI to summarize notes, solve doubts from a PDF, or extract information from textbook pages — directly useful and relatable skills.</p>
+            <div class="day-tools">🛠️ Tools: NotebookLM (free)</div>
+          </div>
+        </div>
+        <div class="day-item">
+          <div class="day-num">Day 6</div>
+          <div class="day-content">
+            <h4>AI Image Generation</h4>
+            <p>A fun, high-engagement session! Each student generates a cartoon version of themselves or a simple creative image from scratch.</p>
+            <div class="day-tools">🛠️ Tools: ChatGPT (image generation)</div>
+          </div>
+        </div>
+        <div class="day-item">
+          <div class="day-num">Day 7</div>
+          <div class="day-content">
+            <h4>AI Voice & Video Generation</h4>
+            <p>Introduce voice generation, voice cloning, and short AI-generated video clips. This session usually has the strongest "wow factor"!</p>
+            <div class="day-tools">🛠️ Tools: ElevenLabs (voice), Google Flow (video)</div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="module-card">
-      <div class="module-icon">🎨</div>
-      <h3 class="module-title">AI Image & Video</h3>
-      <p class="module-desc">Generate stunning, professional-grade imagery and cinematic video clips entirely from text prompts.</p>
+
+    <!-- Phase 3 -->
+    <div class="phase-block">
+      <h3 class="phase-title">Phase 3: Light-Advanced — Building Skills <span>Day 8–12</span></h3>
+      <div class="day-list">
+        <div class="day-item">
+          <div class="day-num">Day 8</div>
+          <div class="day-content">
+            <h4>What Is a Website, Really?</h4>
+            <p>A concept-only session explaining a webpage as a structure plus design — just like building a house: foundation, rooms, and decoration.</p>
+            <div class="day-tools">💡 Concept-focused session</div>
+          </div>
+        </div>
+        <div class="day-item">
+          <div class="day-num">Day 9</div>
+          <div class="day-content">
+            <h4>Generating a Landing Page with AI</h4>
+            <p>Students prompt an AI tool to build a landing page for a sample business idea, then see it come to life instantly — the first major "I built something" moment.</p>
+            <div class="day-tools">🛠️ Tools: Claude, ChatGPT, Lovable / v0.dev</div>
+          </div>
+        </div>
+        <div class="day-item">
+          <div class="day-num">Day 10</div>
+          <div class="day-content">
+            <h4>Customizing the Landing Page</h4>
+            <p>Combine everything learned so far — generate images and text with AI and add them seamlessly into your new landing page layout.</p>
+            <div class="day-tools">🛠️ Tools: Lovable / v0.dev, ChatGPT</div>
+          </div>
+        </div>
+        <div class="day-item">
+          <div class="day-num">Day 11</div>
+          <div class="day-content">
+            <h4>Adding a Chatbot to the Website</h4>
+            <p>Embed a simple AI chatbot directly into your landing page — "now your page can talk back."</p>
+            <div class="day-tools">🛠️ Tools: Google AI Studio</div>
+          </div>
+        </div>
+        <div class="day-item">
+          <div class="day-num">Day 12</div>
+          <div class="day-content">
+            <h4>Going Live: Deployment</h4>
+            <p>Deploy the landing page using free hosting so it is accessible on the internet — a genuine "the world can see this" milestone.</p>
+            <div class="day-tools">🛠️ Tools: Netlify or Vercel</div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="module-card">
-      <div class="module-icon">🗣️</div>
-      <h3 class="module-title">Voice & Character AI</h3>
-      <p class="module-desc">Create ultra-realistic AI voiceovers with ElevenLabs and build interactive, custom character chatbots.</p>
+
+    <!-- Phase 4 -->
+    <div class="phase-block">
+      <h3 class="phase-title">Phase 4: Capstone & Wrap-Up <span>Day 13–15</span></h3>
+      <div class="day-list">
+        <div class="day-item">
+          <div class="day-num">Day 13</div>
+          <div class="day-content">
+            <h4>Capstone Polish Day</h4>
+            <p>Students finalize their own landing page project, choosing a personal brand or sample business idea, combining all tools learned across the course.</p>
+            <div class="day-tools">🛠️ Tools: All tools used so far</div>
+          </div>
+        </div>
+        <div class="day-item">
+          <div class="day-num">Day 14</div>
+          <div class="day-content">
+            <h4>Final Touches + AI Safety Awareness</h4>
+            <p>Quick, important discussion on deepfakes, fake news, and using AI responsibly — essential knowledge for a beginner audience.</p>
+            <div class="day-tools">💡 Discussion session</div>
+          </div>
+        </div>
+        <div class="day-item">
+          <div class="day-num">Day 15</div>
+          <div class="day-content">
+            <h4>Presentation & Certification</h4>
+            <p>Each student presents their own live, deployed landing page. Certificates are distributed and the course closes with guidance on continuing to learn AI independently.</p>
+            <div class="day-tools">🎓 Presentation Day</div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="module-card">
-      <div class="module-icon">🌐</div>
-      <h3 class="module-title">AI Website Creation</h3>
-      <p class="module-desc">Build and deploy fully functional, beautiful websites and web apps with zero prior coding experience.</p>
-    </div>
-    <div class="module-card">
-      <div class="module-icon">🎓</div>
-      <h3 class="module-title">Verifiable Certification</h3>
-      <p class="module-desc">Earn an official, verifiable HK Workshop certificate with a unique ID and QR code to showcase your new skills.</p>
-    </div>
+    
   </div>
 </div>
 
@@ -272,7 +416,7 @@
   
   <div class="faq-item">
     <h3 class="faq-q">How long is the course?</h3>
-    <p class="faq-a">The course is designed to be highly intensive and hands-on, typically completed over a 4-week period with practical weekly projects.</p>
+    <p class="faq-a">The masterclass is a highly structured 15-day curriculum designed for absolute beginners, taking you from zero to deploying your first live AI-built website.</p>
   </div>
   <div class="faq-item">
     <h3 class="faq-q">Is the certificate verifiable/valid?</h3>
