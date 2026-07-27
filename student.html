@@ -11,10 +11,11 @@
     --primary-hover: #1e293b;
     --secondary: #d97706;
     --bg: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    --card-bg: rgba(255, 255, 255, 0.65);
+    --card-bg: rgba(255, 255, 255, 0.75);
     --text-main: #111827;
     --text-muted: #6B7280;
     --border: #E5E7EB;
+    --border-light: rgba(255,255,255,0.8);
     --red: #EF4444;
   }
   * { box-sizing: border-box; }
@@ -22,18 +23,13 @@
     margin: 0; 
     font-family: 'Outfit', sans-serif; 
     background: var(--bg); 
-    display: flex; 
-    align-items: flex-start; 
-    justify-content: center; 
-    min-height: 100vh; 
-    padding: 40px 20px; 
     color: var(--text-main);
     overflow-x: hidden;
-    position: relative;
+    min-height: 100vh;
   }
 
   /* Animated Background Orbs */
-  .bg-orbs { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+  .bg-orbs { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
   .orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.6; animation: float 15s ease-in-out infinite; }
   .orb.a { width: 500px; height: 500px; background: #cbd5e1; top: -100px; left: -200px; }
   .orb.b { width: 400px; height: 400px; background: #fde68a; bottom: -100px; right: -100px; animation-direction: reverse; animation-delay: -5s;}
@@ -44,36 +40,21 @@
     background: var(--primary); color: #fff; 
     font-weight: 500; font-size: 12px; padding: 8px 16px; 
     z-index: 99; text-align: center;
-    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.2);
   }
   
-  /* Glassmorphism Panel */
-  .panel { 
-    width: 100%; max-width: 560px; 
-    background: var(--card-bg); 
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    padding: 48px; 
-    border-radius: 24px;
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255,255,255,1);
-    margin-top: 34px;
-    border: 1px solid rgba(255,255,255,0.8);
-    position: relative;
-    z-index: 1;
-  }
-  h1 { font-size: 28px; font-weight: 700; color: var(--text-main); margin: 0 0 8px 0; letter-spacing: -0.5px;}
-  .sub { font-size: 13px; font-weight: 500; letter-spacing: 1.5px; color: var(--primary); text-transform: uppercase; margin-bottom: 32px; }
-  
+  /* Shared Typography & Forms */
+  h1, h2, h3 { margin: 0; color: var(--text-main); font-weight: 700; letter-spacing: -0.5px;}
+  .sub { font-size: 13px; font-weight: 500; letter-spacing: 1.5px; color: var(--primary); text-transform: uppercase; margin-bottom: 24px; }
   label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin: 16px 0 8px; letter-spacing: 0.5px;}
-  input { 
+  input, textarea { 
     width: 100%; padding: 12px 16px; font-family: 'Outfit', sans-serif; font-size: 15px; 
-    border: 1px solid var(--border); border-radius: 8px; background: rgba(255,255,255,0.7);
+    border: 1px solid var(--border); border-radius: 8px; background: rgba(255,255,255,0.8);
     transition: all 0.2s ease;
   }
-  input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1); background: #fff;}
+  input:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1); background: #fff;}
   
   button { 
-    margin-top: 24px; width: 100%; padding: 14px; 
+    width: 100%; padding: 14px; margin-top: 16px;
     background: var(--primary); color: #fff; border: none; border-radius: 8px;
     font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 14px; cursor: pointer; 
     transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.3);
@@ -83,68 +64,111 @@
   .msg { font-size: 13px; font-weight: 500; margin-top: 16px; text-align: center; }
   .msg.err { color: var(--red); background: #FEF2F2; padding: 10px; border-radius: 8px; border: 1px solid #FEE2E2;} 
   .msg.ok { color: var(--secondary); background: #fef3c7; padding: 10px; border-radius: 8px; border: 1px solid #D1FAE5;}
-  
-  #dash { display: none; }
-  
-  /* Glowing Progress Bar */
-  .progressBar { 
-    background: #e5e7eb; height: 12px; border-radius: 999px; overflow: hidden; margin: 12px 0 8px 0; 
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+
+  /* Login View */
+  #loginView {
+    display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 40px 20px;
   }
-  .progressFill { 
-    background: linear-gradient(90deg, #10B981 0%, #34D399 100%); 
-    height: 100%; border-radius: 999px; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+  .login-panel { 
+    width: 100%; max-width: 480px; 
+    background: var(--card-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    padding: 48px; border-radius: 24px;
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.05), inset 0 1px 0 var(--border-light);
+    border: 1px solid var(--border-light);
   }
-  #progressText { text-align: left; margin-top: 4px; color: var(--text-muted); font-size: 12px;}
+
+  /* Dashboard View */
+  #dashboardView { display: none; padding: 60px 20px 20px; max-width: 1200px; margin: 0 auto; height: 100vh;}
+  .dash-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 24px;
+    height: calc(100vh - 80px);
+  }
+
+  /* Sidebar */
+  .sidebar {
+    background: var(--card-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border-radius: 24px; padding: 32px 24px;
+    border: 1px solid var(--border-light);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.03), inset 0 1px 0 var(--border-light);
+    display: flex; flex-direction: column;
+  }
+  .profile-section { text-align: center; border-bottom: 1px solid var(--border); padding-bottom: 24px; margin-bottom: 24px; }
   
-  /* Session Hover & Slide Animations */
-  @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
+  .avatar-wrap { position: relative; display: inline-block; cursor: pointer; margin-bottom: 12px; }
+  .avatar-wrap img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); background: #fff;}
+  .avatar-wrap .badge { position: absolute; bottom: 0; right: 0; background: var(--primary); color: #fff; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; border: 2px solid #fff; }
+  
+  .nav-menu { display: flex; flex-direction: column; gap: 8px; flex: 1;}
+  .nav-item {
+    padding: 14px 16px; border-radius: 12px; font-size: 15px; font-weight: 500; color: var(--text-muted);
+    cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 12px;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.6); color: var(--primary); }
+  .nav-item.active { background: #fff; color: var(--primary); box-shadow: 0 4px 12px rgba(0,0,0,0.04); font-weight: 600;}
+  
+  .logout-btn { color: var(--red); font-weight: 600; cursor: pointer; text-align: center; font-size: 14px; padding-top: 24px; transition: opacity 0.2s; }
+  .logout-btn:hover { opacity: 0.7; }
+
+  /* Main Content Area */
+  .main-content {
+    background: var(--card-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+    border-radius: 24px; padding: 40px;
+    border: 1px solid var(--border-light);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.03), inset 0 1px 0 var(--border-light);
+    overflow-y: auto;
+  }
+  
+  .tab-content { display: none; animation: fadeIn 0.4s ease forwards; }
+  .tab-content.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Dashboard Tab UI */
+  .progress-card { background: #fff; border-radius: 16px; padding: 24px; border: 1px solid var(--border); margin-bottom: 24px;}
+  .progressBar { background: #e5e7eb; height: 12px; border-radius: 999px; overflow: hidden; margin: 12px 0 8px 0; box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); }
+  .progressFill { background: linear-gradient(90deg, #10B981 0%, #34D399 100%); height: 100%; border-radius: 999px; transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px rgba(16, 185, 129, 0.6); }
+  
   .sessionItem { 
-    opacity: 0; transform: translateY(20px);
-    animation: slideUp 0.5s forwards;
     border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px;
-    background: rgba(255, 255, 255, 0.8); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: #fff; transition: all 0.2s ease;
   }
-  .sessionItem:hover { 
-    background: #fff; 
-    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08); 
-    transform: translateY(-3px) scale(1.01); 
-    border-color: #cbd5e1; 
-  }
-  .sessionItem .snum { font-size: 11px; font-weight: 600; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px;}
-  .sessionItem .status { font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 6px;}
+  .sessionItem:hover { box-shadow: 0 10px 20px rgba(15, 23, 42, 0.05); transform: translateY(-2px); border-color: #cbd5e1; }
+  .sessionItem .snum { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px;}
+  .sessionItem .status { font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 6px;}
   .sessionItem .status.done { color: #065f46; background: #D1FAE5; }
   .sessionItem .status.pending { color: var(--text-muted); background: #F3F4F6; }
-  .sessionItem .topics { font-size: 15px; font-weight: 500; color: var(--text-main); margin-top: 8px;}
-  .sessionItem .notes { font-size: 14px; color: var(--text-muted); margin-top: 4px; line-height: 1.5;}
-  
-  /* Shimmering Certificate Box */
-  @keyframes shimmer { 0% { background-position: -500px 0; } 100% { background-position: 500px 0; } }
-  .certBox { 
-    background: linear-gradient(135deg, #FFFBEE 0%, #FFF4D1 100%); 
-    border: 1px solid #FDE68A; border-radius: 16px; padding: 24px; margin-top: 32px; text-align: center; 
-    box-shadow: 0 10px 25px rgba(245, 158, 11, 0.1);
-    position: relative; overflow: hidden;
+
+  /* Live Class Tab UI */
+  .live-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 16px; padding: 40px; color: #fff; text-align: center; margin-top: 24px; box-shadow: 0 20px 40px rgba(15,23,42,0.2);}
+  .live-card h2 { color: #fff; font-size: 32px; margin-bottom: 16px; }
+  .live-card p { color: #94a3b8; font-size: 16px; margin-bottom: 32px;}
+  .btn-meet { display: inline-block; background: #3b82f6; color: #fff; font-size: 16px; font-weight: 600; padding: 16px 32px; border-radius: 12px; text-decoration: none; transition: all 0.2s ease; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);}
+  .btn-meet:hover { background: #2563eb; transform: translateY(-2px); }
+
+  /* Homework Tab UI */
+  .hw-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 16px; }
+  .hw-card h3 { margin-bottom: 8px; }
+  .hw-status { display: inline-block; font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 4px; background: #FEF3C7; color: #D97706; margin-bottom: 16px;}
+  .hw-status.done { background: #D1FAE5; color: #065F46; }
+
+  /* Community Tab UI */
+  .community-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-top: 24px; }
+  .peer-card { background: #fff; border: 1px solid var(--border); border-radius: 16px; padding: 24px 16px; text-align: center; transition: transform 0.2s; }
+  .peer-card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); border-color: #cbd5e1; }
+  .peer-card img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; margin-bottom: 12px; }
+  .peer-card .name { font-weight: 600; font-size: 15px; color: var(--text-main); margin-bottom: 4px;}
+  .peer-card .role { font-size: 12px; color: var(--text-muted); }
+
+  /* Certificate Box */
+  .certBox { background: linear-gradient(135deg, #FFFBEE 0%, #FFF4D1 100%); border: 1px solid #FDE68A; border-radius: 16px; padding: 24px; margin-top: 24px; text-align: center; }
+  .certBox a { display: inline-block; margin-top: 16px; background: #F59E0B; color: #fff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;}
+
+  @media (max-width: 900px) {
+    .dash-layout { grid-template-columns: 1fr; height: auto; }
+    .sidebar { border-radius: 0; padding: 20px; }
+    .main-content { border-radius: 0; min-height: 500px; }
   }
-  .certBox::after {
-    content: ''; position: absolute; top:0; left:0; width: 100%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-    background-size: 500px 100%;
-    animation: shimmer 3s infinite;
-    pointer-events: none;
-  }
-  .certBox a { 
-    display: inline-block; margin-top: 16px; background: #F59E0B; color: #fff; 
-    padding: 12px 24px; border-radius: 8px; text-decoration: none; 
-    font-weight: 600; font-size: 14px; transition: all 0.2s ease;
-    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
-    position: relative; z-index: 2;
-  }
-  .certBox a:hover { background: #D97706; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);}
-  
-  .logoutLink { display: block; text-align: center; margin-top: 32px; font-size: 13px; font-weight: 500; color: var(--text-muted); cursor: pointer; transition: color 0.2s ease;}
-  .logoutLink:hover { color: var(--red); }
 </style>
 </head>
 <body>
@@ -154,64 +178,157 @@
   <div class="orb b"></div>
 </div>
 
-<div class="banner" id="banner">Loading…</div>
+<div class="banner" id="banner">Initializing Platform...</div>
 
-<div class="panel" id="login">
-  <h1>HK Workshop</h1>
-  <div class="sub">Student Login</div>
-  <label>Email</label>
-  <input type="email" id="email" autocomplete="username">
-  <label>Password</label>
-  <input type="password" id="password" autocomplete="current-password">
-  <button id="loginBtn" type="button">Log In</button>
-  <div style="text-align:center; margin-top:16px;">
-    <a href="#" id="forgotPwdLink" style="font-size:14px; color:var(--text-muted); text-decoration:none;">Forgot password?</a>
+<!-- LOGIN VIEW -->
+<div id="loginView">
+  <div class="login-panel">
+    <h1>HK Workshop</h1>
+    <div class="sub">Student Portal</div>
+    <label>Email</label>
+    <input type="email" id="email" autocomplete="username">
+    <label>Password</label>
+    <input type="password" id="password" autocomplete="current-password">
+    <button id="loginBtn" type="button">Access Platform</button>
+    
+    <div style="text-align:center; margin-top:16px;">
+      <a href="#" id="forgotPwdLink" style="font-size:14px; color:var(--text-muted); text-decoration:none;">Forgot password?</a>
+    </div>
+    
+    <div id="forgotPwdSection" style="display:none; margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
+      <label>Enter your email to recover password</label>
+      <input type="email" id="recoverEmail" placeholder="your@email.com">
+      <button id="recoverBtn" type="button" style="padding: 10px;">Send Reset Link</button>
+    </div>
+    <div class="msg err" id="loginMsg" style="display:none;"></div>
   </div>
-  <div id="forgotPwdSection" style="display:none; margin-top:16px; padding-top:16px; border-top:1px solid var(--border);">
-    <label>Enter your email to recover password</label>
-    <input type="email" id="recoverEmail" placeholder="your@email.com">
-    <button id="recoverBtn" type="button" class="miniBtn" style="width:100%;">Send Reset Link</button>
-  </div>
-  <div class="msg err" id="loginMsg"></div>
 </div>
 
-<div class="panel" id="dash">
-  <div style="text-align:center; margin-bottom: 20px;">
-    <div style="position:relative; display:inline-block; cursor:pointer;" id="avatarContainer">
-      <img id="studentAvatar" src="https://ui-avatars.com/api/?name=Student&background=random&size=100" style="width:100px; height:100px; border-radius:50%; object-fit:cover; border:2px solid var(--border);">
-      <div style="position:absolute; bottom:0; right:0; background:var(--primary); color:#fff; border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-size:12px; box-shadow:0 2px 4px rgba(0,0,0,0.2);">📷</div>
+<!-- DASHBOARD VIEW -->
+<div id="dashboardView">
+  <div class="dash-layout">
+    
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="profile-section">
+        <div class="avatar-wrap" id="avatarContainer">
+          <img id="studentAvatar" src="https://ui-avatars.com/api/?name=S&background=random" alt="Avatar">
+          <div class="badge">📷</div>
+        </div>
+        <input type="file" id="avatarInput" accept="image/*" style="display:none;">
+        <h2 id="studentNameShow" style="font-size: 18px;">Welcome</h2>
+        <div id="courseShow" style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Loading...</div>
+        <div id="avatarMsg" style="font-size:11px; margin-top:8px;"></div>
+      </div>
+      
+      <div class="nav-menu">
+        <div class="nav-item active" data-tab="tab-dashboard">📊 Dashboard</div>
+        <div class="nav-item" data-tab="tab-live">🎥 Live Class</div>
+        <div class="nav-item" data-tab="tab-homework">📝 Assignments</div>
+        <div class="nav-item" data-tab="tab-community">🌐 Community</div>
+      </div>
+      
+      <div class="logout-btn" id="logoutBtn">Log out securely</div>
     </div>
-    <input type="file" id="avatarInput" accept="image/*" style="display:none;">
-    <div id="avatarMsg" style="font-size:12px; margin-top:8px;"></div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+      
+      <!-- Tab 1: Dashboard -->
+      <div id="tab-dashboard" class="tab-content active">
+        <h1>Your Progress</h1>
+        <div class="sub">Track your journey</div>
+        
+        <div class="progress-card">
+          <div style="display:flex; justify-content:space-between; font-size:14px; font-weight:600;">
+            <span>Course Completion</span>
+            <span id="progressText">0%</span>
+          </div>
+          <div class="progressBar"><div class="progressFill" id="progressFill" style="width:0%"></div></div>
+        </div>
+
+        <div class="certBox" id="certBox" style="display:none;">
+          <h3 style="color: #B45309; margin-bottom: 8px;">🎉 Congratulations!</h3>
+          <p style="font-size:14px; color: #D97706; margin:0;">You have successfully completed the training program.</p>
+          <a id="certLink" href="#" target="_blank">View Official Certificate</a>
+        </div>
+
+        <h3 style="margin: 32px 0 16px;">Session Log</h3>
+        <div id="sessionList">
+          <div style="color:var(--text-muted); font-size:14px;">Loading sessions...</div>
+        </div>
+      </div>
+      
+      <!-- Tab 2: Live Class -->
+      <div id="tab-live" class="tab-content">
+        <h1>Live Sessions</h1>
+        <div class="sub">Join the interactive cohort</div>
+        
+        <div class="live-card">
+          <div style="font-size: 48px; margin-bottom: 16px;">🔴</div>
+          <h2>Next Masterclass is LIVE</h2>
+          <p>Join the instructor and your peers in the virtual classroom right now. Make sure your microphone is working and you are in a quiet environment.</p>
+          <a href="#" target="_blank" class="btn-meet" onclick="alert('Admin: Update this link in student.html to point to your real Google Meet URL!'); return false;">Join via Google Meet</a>
+        </div>
+      </div>
+      
+      <!-- Tab 3: Homework -->
+      <div id="tab-homework" class="tab-content">
+        <h1>Assignments</h1>
+        <div class="sub">Apply what you learned</div>
+        
+        <div class="hw-card">
+          <div class="hw-status">Pending Submission</div>
+          <h3>Assignment 1: Master Prompting</h3>
+          <p style="font-size:14px; color:var(--text-muted); line-height:1.5;">Create 5 advanced prompts using the framework taught in Session 1. Paste your Google Doc link below for review.</p>
+          
+          <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
+            <label>Submission Link</label>
+            <div style="display:flex; gap:12px;">
+              <input type="text" placeholder="https://docs.google.com/..." id="hwLink">
+              <button style="width: auto; margin:0; padding: 0 24px;" id="submitHwBtn">Submit</button>
+            </div>
+          </div>
+        </div>
+        
+        <div class="hw-card">
+          <div class="hw-status done">✓ Graded</div>
+          <h3>Pre-Course Setup</h3>
+          <p style="font-size:14px; color:var(--text-muted);">Create accounts on ChatGPT, Midjourney, and NotebookLM.</p>
+        </div>
+      </div>
+      
+      <!-- Tab 4: Community -->
+      <div id="tab-community" class="tab-content">
+        <h1>Cohort Directory</h1>
+        <div class="sub">Connect with your peers</div>
+        
+        <div class="community-grid" id="communityGrid">
+          <div style="color:var(--text-muted); font-size:14px; grid-column: 1/-1;">Loading active students...</div>
+        </div>
+      </div>
+      
+    </div>
   </div>
-  <h1 id="studentNameShow" style="text-align:center; margin-top:0;">Welcome</h1>
-  <div class="sub" id="courseShow" style="text-align:center;">Course</div>
-
-  <label>Progress</label>
-  <div class="progressBar"><div class="progressFill" id="progressFill" style="width:0%"></div></div>
-  <div class="msg" id="progressText"></div>
-
-  <div id="sessionList" style="margin-top:20px;"></div>
-
-  <div class="certBox" id="certBox" style="display:none;">
-    <div style="font-family:'Courier New',monospace; font-size:11px; letter-spacing:2px; color:#D97706; text-transform:uppercase; position: relative; z-index: 2;">Certificate Issued 🎉</div>
-    <a id="certLink" href="#" target="_blank">View / Verify Certificate</a>
-  </div>
-
-  <div class="logoutLink" id="logoutBtn">Log out</div>
 </div>
 
 <script>
 (function(){
   var banner = document.getElementById('banner');
   window.addEventListener('error', function(e){ banner.textContent = "JS Error: " + (e.message || e); });
-  window.addEventListener('unhandledrejection', function(e){ banner.textContent = "Promise Error: " + (e.reason && e.reason.message ? e.reason.message : e.reason); });
-
+  
   var SUPABASE_URL = "https://hdjfodduhlmrmphaxsjj.supabase.co";
   var SUPABASE_ANON_KEY = "sb_publishable_YnubDZntig72f8Ge_7mQwQ_gVS-tZzq";
   var SITE_URL = "https://hkcerts.netlify.app";
 
-  banner.textContent = "Script loaded OK. Ready.";
+  banner.style.display = 'none';
+
+  function showMsg(elId, text, type) {
+    var el = document.getElementById(elId);
+    el.style.display = 'block';
+    el.textContent = text;
+    el.className = "msg " + type;
+  }
 
   function setSession(token, uid){
     if (token){ sessionStorage.setItem('hkw_student_token', token); sessionStorage.setItem('hkw_student_uid', uid); }
@@ -221,79 +338,91 @@
   function getUid(){ return sessionStorage.getItem('hkw_student_uid'); }
 
   function showDash(){
-    document.getElementById('login').style.display = 'none';
-    document.getElementById('dash').style.display = 'block';
+    document.getElementById('loginView').style.display = 'none';
+    document.getElementById('dashboardView').style.display = 'block';
     loadDashboard();
+    loadCommunity();
   }
 
   if (getToken()) showDash();
 
+  // Tab Switching Logic
+  document.querySelectorAll('.nav-item').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      // Remove active from all tabs
+      document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      // Add active to clicked
+      this.classList.add('active');
+      document.getElementById(this.dataset.tab).classList.add('active');
+    });
+  });
+
+  // Homework Submit Mock
+  document.getElementById('submitHwBtn').addEventListener('click', function(){
+    if(!document.getElementById('hwLink').value) return alert('Please paste a link first!');
+    this.textContent = "Submitted ✓";
+    this.style.background = "#10B981";
+    setTimeout(() => { alert("Success! Your homework was sent to the instructor. (Note: Frontend UI demo)"); }, 300);
+  });
+
+  // Login
   document.getElementById('loginBtn').addEventListener('click', function(){
-    var msgEl = document.getElementById('loginMsg');
     var email = document.getElementById('email').value.trim();
     var password = document.getElementById('password').value;
-    if (!email || !password){ msgEl.textContent = "Enter both email and password."; return; }
-    msgEl.textContent = "Logging in...";
+    if (!email || !password) return showMsg('loginMsg', "Enter both email and password.", "err");
+    showMsg('loginMsg', "Authenticating...", "ok");
 
     fetch(SUPABASE_URL + "/auth/v1/token?grant_type=password", {
       method: "POST",
       headers: { "Content-Type": "application/json", "apikey": SUPABASE_ANON_KEY },
       body: JSON.stringify({ email: email, password: password })
     })
-    .then(function(res){ return res.json().then(function(data){ return {status: res.status, data: data}; }); })
-    .then(function(result){
+    .then(res => res.json().then(data => ({status: res.status, data: data})))
+    .then(result => {
       if (result.status !== 200 || !result.data.access_token){
         var rawError = result.data.error_description || result.data.msg || "";
-        var friendlyError = "Email or password is incorrect.";
-        if (rawError.includes("Email not confirmed")) friendlyError = "Your account isn't verified yet — contact HK Workshop.";
-        msgEl.textContent = friendlyError;
-        return;
+        var friendly = "Email or password is incorrect.";
+        if (rawError.includes("Email not confirmed")) friendly = "Account not verified.";
+        return showMsg('loginMsg', friendly, "err");
       }
       setSession(result.data.access_token, result.data.user.id);
-      msgEl.textContent = "";
       showDash();
     })
-    .catch(function(err){ msgEl.textContent = "Can't reach the server. Check your internet connection."; });
+    .catch(err => showMsg('loginMsg', "Network Error.", "err"));
   });
 
+  // Password Recover
   document.getElementById('forgotPwdLink').addEventListener('click', function(e){
     e.preventDefault();
     document.getElementById('forgotPwdSection').style.display = 'block';
   });
 
   document.getElementById('recoverBtn').addEventListener('click', function(){
-    var msgEl = document.getElementById('loginMsg');
     var email = document.getElementById('recoverEmail').value.trim();
-    if (!email) { msgEl.textContent = "Enter your email to recover password."; return; }
-    msgEl.textContent = "Sending reset link...";
-    msgEl.className = "msg";
+    if (!email) return showMsg('loginMsg', "Enter email for recovery.", "err");
+    showMsg('loginMsg', "Sending...", "ok");
 
     fetch(SUPABASE_URL + "/auth/v1/recover", {
       method: "POST",
       headers: { "Content-Type": "application/json", "apikey": SUPABASE_ANON_KEY },
       body: JSON.stringify({ email: email })
     })
-    .then(function(res){
-      if(res.ok) {
-        msgEl.className = "msg ok";
-        msgEl.textContent = "Check your email for the reset link.";
-      } else {
-        msgEl.className = "msg err";
-        msgEl.textContent = "Error sending reset link.";
-      }
+    .then(res => {
+      if(res.ok) showMsg('loginMsg', "Check email for reset link.", "ok");
+      else showMsg('loginMsg', "Error sending link.", "err");
     })
-    .catch(function(err){
-      msgEl.className = "msg err";
-      msgEl.textContent = "Network error: " + err.message;
-    });
+    .catch(err => showMsg('loginMsg', "Network Error.", "err"));
   });
 
+  // Logout
   document.getElementById('logoutBtn').addEventListener('click', function(){
     setSession(null, null);
-    document.getElementById('dash').style.display = 'none';
-    document.getElementById('login').style.display = 'block';
+    document.getElementById('dashboardView').style.display = 'none';
+    document.getElementById('loginView').style.display = 'flex';
   });
 
+  // Avatar Upload
   document.getElementById('avatarContainer').addEventListener('click', function() {
     document.getElementById('avatarInput').click();
   });
@@ -301,113 +430,128 @@
   document.getElementById('avatarInput').addEventListener('change', function(e) {
     var file = e.target.files[0];
     if (!file) return;
-    
     var token = getToken();
     var uid = getUid();
     var msg = document.getElementById('avatarMsg');
     
-    msg.style.color = "var(--text-muted)";
+    msg.style.color = "var(--primary)";
     msg.textContent = "Uploading...";
     
     fetch(SUPABASE_URL + "/storage/v1/object/avatars/" + uid + "?upsert=true", {
       method: "POST",
-      headers: {
-        "apikey": SUPABASE_ANON_KEY,
-        "Authorization": "Bearer " + token,
-        "Content-Type": file.type
-      },
+      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + token, "Content-Type": file.type },
       body: file
     })
-    .then(function(res){
-      if(!res.ok) throw new Error("Failed to upload image");
+    .then(res => {
+      if(!res.ok) throw new Error("Upload failed");
       var publicUrl = SUPABASE_URL + "/storage/v1/object/public/avatars/" + uid + "?t=" + Date.now();
-      
       return fetch(SUPABASE_URL + "/rest/v1/students?id=eq." + uid, {
         method: "PATCH",
-        headers: {
-          "apikey": SUPABASE_ANON_KEY,
-          "Authorization": "Bearer " + token,
-          "Content-Type": "application/json"
-        },
+        headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + token, "Content-Type": "application/json" },
         body: JSON.stringify({ avatar_url: publicUrl })
-      }).then(function(patchRes){
-        if(!patchRes.ok) throw new Error("Failed to update profile");
+      }).then(patchRes => {
+        if(!patchRes.ok) throw new Error("DB Update failed");
         document.getElementById('studentAvatar').src = publicUrl;
         msg.style.color = "green";
-        msg.textContent = "Profile picture updated!";
-        setTimeout(function(){ msg.textContent = ""; }, 3000);
+        msg.textContent = "Saved!";
+        setTimeout(() => msg.textContent = "", 3000);
       });
     })
-    .catch(function(err){
-      msg.style.color = "red";
-      msg.textContent = err.message;
-    });
+    .catch(err => { msg.style.color = "red"; msg.textContent = "Error"; });
   });
 
+  // Load Dashboard Data
   function loadDashboard(){
     var token = getToken();
     var uid = getUid();
 
-    fetch(SUPABASE_URL + "/rest/v1/students?id=eq." + uid + "&active=eq.true&select=*", {
+    // Profile
+    fetch(SUPABASE_URL + "/rest/v1/students?id=eq." + uid + "&select=*", {
       headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + token }
     })
-    .then(function(res){ return res.json(); })
-    .then(function(rows){
+    .then(res => res.json())
+    .then(rows => {
       if (!rows || rows.length === 0) return;
       var student = rows[0];
-      document.getElementById('studentNameShow').textContent = "Hi, " + student.full_name;
-      document.getElementById('courseShow').textContent = student.course_title;
-      if (student.avatar_url) {
-        document.getElementById('studentAvatar').src = student.avatar_url;
-      } else {
-        document.getElementById('studentAvatar').src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(student.full_name) + "&background=random&size=100";
-      }
+      document.getElementById('studentNameShow').textContent = student.full_name;
+      document.getElementById('courseShow').textContent = student.course_title || "AI Tools for Everyone";
+      document.getElementById('studentAvatar').src = student.avatar_url || "https://ui-avatars.com/api/?name=" + encodeURIComponent(student.full_name) + "&background=random";
     });
 
+    // Progress
     fetch(SUPABASE_URL + "/rest/v1/session_progress?student_id=eq." + uid + "&select=*&order=session_number.asc", {
       headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + token }
     })
-    .then(function(res){ return res.json(); })
-    .then(function(sessions){
+    .then(res => res.json())
+    .then(sessions => {
       sessions = sessions || [];
-      var attended = sessions.filter(function(s){ return s.attended; }).length;
-      var pct = Math.round((attended / 6) * 100);
+      var attended = sessions.filter(s => s.attended).length;
+      var total = sessions.length > 0 ? sessions.length : 6;
+      var pct = total > 0 ? Math.round((attended / total) * 100) : 0;
       
-      // Animate progress bar in after a slight delay
-      setTimeout(function(){
-        document.getElementById('progressFill').style.width = pct + "%";
-      }, 100);
-      
-      document.getElementById('progressText').textContent = attended + " of 6 sessions completed";
+      setTimeout(() => { document.getElementById('progressFill').style.width = pct + "%"; }, 100);
+      document.getElementById('progressText').textContent = attended + " / " + total + " Sessions";
 
       var listEl = document.getElementById('sessionList');
       listEl.innerHTML = "";
-      sessions.forEach(function(s, index){
+      if(sessions.length === 0) listEl.innerHTML = "<div style='color:#64748b; font-size:14px;'>No sessions assigned yet.</div>";
+
+      sessions.forEach(function(s){
         var div = document.createElement('div');
         div.className = "sessionItem";
-        // Staggered slide-in animation
-        div.style.animationDelay = (index * 0.1) + "s";
         div.innerHTML =
-          '<div class="snum">SESSION ' + s.session_number + (s.session_date ? ' — ' + s.session_date : '') + '</div>' +
-          '<div class="status ' + (s.attended ? 'done' : 'pending') + '">' + (s.attended ? '✓ Completed' : '○ Pending') + '</div>' +
-          (s.topics_covered ? '<div class="topics">' + s.topics_covered + '</div>' : '') +
-          (s.notes ? '<div class="notes">' + s.notes + '</div>' : '');
+          '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+            '<div class="snum">SESSION ' + s.session_number + (s.session_date ? ' — ' + s.session_date : '') + '</div>' +
+            '<div class="status ' + (s.attended ? 'done' : 'pending') + '">' + (s.attended ? '✓ Completed' : '○ Pending') + '</div>' +
+          '</div>' +
+          (s.topics_covered ? '<div style="font-weight:600; margin-top:8px;">' + s.topics_covered + '</div>' : '') +
+          (s.notes ? '<div style="font-size:14px; color:var(--text-muted); margin-top:4px;">' + s.notes + '</div>' : '');
         listEl.appendChild(div);
       });
     });
 
+    // Certificate
     fetch(SUPABASE_URL + "/rest/v1/certificates?student_id=eq." + uid + "&select=*", {
       headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + token }
     })
-    .then(function(res){ return res.json(); })
-    .then(function(certs){
+    .then(res => res.json())
+    .then(certs => {
       if (certs && certs.length > 0){
-        var cert = certs[0];
         document.getElementById('certBox').style.display = 'block';
-        document.getElementById('certLink').href = SITE_URL + "/verify.html?id=" + cert.cert_id;
+        document.getElementById('certLink').href = SITE_URL + "/verify.html?id=" + certs[0].cert_id;
       }
     });
   }
+
+  // Load Community
+  function loadCommunity() {
+    var token = getToken();
+    fetch(SUPABASE_URL + "/rest/v1/students?active=eq.true&select=full_name,avatar_url,course_title", {
+      headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + token }
+    })
+    .then(res => res.json())
+    .then(students => {
+      var grid = document.getElementById('communityGrid');
+      grid.innerHTML = "";
+      if(!students || students.length === 0) {
+         grid.innerHTML = "<div style='grid-column:1/-1; color:#64748b;'>No active students found.</div>";
+         return;
+      }
+      students.forEach(s => {
+        var div = document.createElement('div');
+        div.className = "peer-card";
+        var imgUrl = s.avatar_url || "https://ui-avatars.com/api/?name=" + encodeURIComponent(s.full_name) + "&background=random";
+        div.innerHTML = '<img src="' + imgUrl + '">' +
+                        '<div class="name">' + s.full_name + '</div>' +
+                        '<div class="role">' + (s.course_title || "AI Student") + '</div>';
+        grid.appendChild(div);
+      });
+    })
+    .catch(err => {
+      document.getElementById('communityGrid').innerHTML = "<div style='grid-column:1/-1; color:red;'>Failed to load community.</div>";
+    });
+  }
+
 })();
 </script>
 
