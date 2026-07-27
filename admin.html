@@ -5,52 +5,79 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HK Workshop — Admin</title>
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
   @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap');
   @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&display=swap');
   :root {
-    --primary: #0f172a;
-    --primary-hover: #1e293b;
-    --secondary: #d97706;
-    --bg: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    --card-bg: #FFFFFF;
-    --text-main: #111827;
-    --text-muted: #6B7280;
-    --border: #E5E7EB;
+    --primary: #0B0F19; 
+    --primary-hover: #111827;
+    --accent: #4F46E5; 
+    --accent-hover: #4338CA;
+    --secondary: #10B981; 
+    --bg: #0B0F19;
+    --card-bg: rgba(255, 255, 255, 0.03);
+    --border: rgba(255, 255, 255, 0.08);
+    --text-main: #F3F4F6;
+    --text-muted: #9CA3AF;
     --red: #EF4444;
     --gold: #F59E0B;
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0; font-family: 'Outfit', sans-serif; background: var(--bg);
-    display: flex; align-items: flex-start; justify-content: center; min-height: 100vh; padding: 40px 20px; color: var(--text-main);
+    margin: 0; font-family: 'Inter', sans-serif; background: var(--bg);
+    display: flex; min-height: 100vh; color: var(--text-main);
   }
-  .banner { position: fixed; top: 0; left: 0; right: 0; background: var(--primary); color: #fff; font-weight: 500; font-size: 12px; padding: 8px 16px; z-index: 99; text-align: center; box-shadow: 0 2px 10px rgba(15, 23, 42, 0.2); }
-  .panel { width: 100%; max-width: 560px; background: var(--card-bg); padding: 48px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0,0,0,0.05); margin-top: 34px; border: 1px solid rgba(255,255,255,0.4); }
-  h1 { font-size: 28px; font-weight: 700; color: var(--text-main); margin: 0 0 8px 0; letter-spacing: -0.5px;}
-  .sub { font-size: 13px; font-weight: 500; letter-spacing: 1.5px; color: var(--primary); text-transform: uppercase; margin-bottom: 32px; display:flex; gap:16px;}
+  .banner { position: fixed; top: 0; left: 0; right: 0; background: var(--accent); color: #fff; font-weight: 500; font-size: 12px; padding: 8px 16px; z-index: 999; text-align: center; }
+  
+  /* Sidebar */
+  .sidebar { width: 260px; background: rgba(255, 255, 255, 0.02); border-right: 1px solid var(--border); padding: 32px 20px; display: flex; flex-direction: column; gap: 8px; backdrop-filter: blur(10px); z-index: 10; min-height: 100vh; position: fixed; left: 0; top: 0;}
+  .sidebar h2 { font-size: 18px; font-weight: 700; color: #fff; margin: 0 0 32px 12px; letter-spacing: 0.5px;}
+  .tabBtn { cursor: pointer; padding: 12px 16px; border-radius: 8px; font-weight: 500; font-size: 14px; color: var(--text-muted); transition: all 0.2s ease; display: flex; align-items: center; gap: 12px; }
+  .tabBtn:hover { background: rgba(255, 255, 255, 0.05); color: #fff; }
+  .tabBtn.active { background: rgba(79, 70, 229, 0.15); color: #fff; border-left: 3px solid var(--accent); border-radius: 4px 8px 8px 4px;}
+  
+  /* Main Area */
+  .main-area { flex: 1; padding: 48px; max-width: 1400px; margin-left: 260px; }
+  .panel { width: 100%; max-width: 440px; margin: 100px auto; background: var(--card-bg); padding: 40px; border-radius: 24px; border: 1px solid var(--border); backdrop-filter: blur(20px);} /* Login panel */
+  
+  h1 { font-size: 28px; font-weight: 700; color: #fff; margin: 0 0 8px 0; letter-spacing: -0.5px;}
+  .sub { font-size: 14px; font-weight: 500; color: var(--text-muted); margin-bottom: 32px; line-height: 1.5; max-width: 800px; }
+  
+  .card { background: var(--card-bg); border: 1px solid var(--border); padding: 24px; border-radius: 16px; backdrop-filter: blur(10px); margin-bottom: 24px;}
+  .grid-1-2 { display: grid; grid-template-columns: 320px 1fr; gap: 32px; align-items: start;}
+  
   label { display: block; font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin: 16px 0 8px; letter-spacing: 0.5px;}
-  input, textarea, select { width: 100%; padding: 12px 16px; font-family: 'Outfit', sans-serif; font-size: 15px; border: 1px solid var(--border); border-radius: 8px; background: #f9fafb; transition: all 0.2s ease; }
+  input, textarea, select { width: 100%; padding: 12px 16px; font-family: 'Inter', sans-serif; font-size: 14px; border: 1px solid var(--border); border-radius: 8px; background: rgba(0,0,0,0.2); color: #fff; transition: all 0.2s ease; }
   textarea { resize: vertical; min-height: 80px; }
-  input:focus, textarea:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1); background: #fff;}
-  button { margin-top: 24px; width: 100%; padding: 14px; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.3); }
-  button:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(15, 23, 42, 0.4); }
+  input:focus, textarea:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); background: rgba(0,0,0,0.4);}
+  
+  button { margin-top: 24px; width: 100%; padding: 14px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); }
+  button:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4); }
+  
   .msg { font-size: 13px; font-weight: 500; margin-top: 16px; text-align: center; }
-  .msg.err { color: var(--red); background: #FEF2F2; padding: 10px; border-radius: 8px; border: 1px solid #FEE2E2;} 
-  .msg.ok { color: var(--secondary); background: #fef3c7; padding: 10px; border-radius: 8px; border: 1px solid #D1FAE5;}
-  #app { display: none; }
-  .out { margin-top: 26px; display: none; background: #fafafa; padding: 20px; border-radius: 12px; border: 1px solid var(--border); text-align:center;}
-  .out a { font-size: 13px; color: var(--primary); word-break: break-all; font-weight: 500;}
-  .printBtn { background: var(--gold); box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3); margin-top: 16px;}
-  .printBtn:hover { background: #D97706; box-shadow: 0 6px 16px rgba(245, 158, 11, 0.4);}
-  .tabBtn { cursor: pointer; font-weight: 600; color: var(--text-muted); transition: color 0.2s; }
-  .tabBtn.active { color: var(--primary); border-bottom: 2px solid var(--primary); padding-bottom: 4px;}
-  .studentCard { border: 1px solid var(--border); padding: 20px; margin-top: 16px; background: #fff; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);}
-  .studentCard .name { font-size: 18px; color: var(--text-main); font-weight: 700;}
+  .msg.err { color: var(--red); background: rgba(239, 68, 68, 0.1); padding: 10px; border-radius: 8px; border: 1px solid rgba(239, 68, 68, 0.2);} 
+  .msg.ok { color: var(--secondary); background: rgba(16, 185, 129, 0.1); padding: 10px; border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.2);}
+  
+  #app { display: none; width:100%; }
+  
+  .out { margin-top: 26px; display: none; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 12px; border: 1px solid var(--border); text-align:center;}
+  .out a { font-size: 13px; color: var(--accent); word-break: break-all; font-weight: 500;}
+  .printBtn { background: var(--gold); box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2); margin-top: 16px; color:#111;}
+  .printBtn:hover { background: #D97706; box-shadow: 0 6px 16px rgba(245, 158, 11, 0.3); color:#fff;}
+  
+  .studentCard { border: 1px solid var(--border); padding: 20px; margin-bottom: 16px; background: rgba(255,255,255,0.02); border-radius: 12px; transition: transform 0.2s; animation: fadeIn 0.4s ease;}
+  .studentCard:hover { transform: translateY(-2px); background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.15);}
+  .studentCard .name { font-size: 16px; color: #fff; font-weight: 600;}
   .studentCard .email { font-size: 13px; color: var(--text-muted); margin-top: 4px; font-weight:500;}
-  .sessionRow { display: flex; gap: 8px; align-items: center; margin-top: 12px; flex-wrap: wrap; background: #f9fafb; padding: 10px; border-radius: 8px; border: 1px solid var(--border);}
-  .sessionRow input[type=text], .sessionRow input[type=date] { font-size: 13px; padding: 8px; }
-  .sessionRow .snum { font-size: 12px; font-weight: 600; color: var(--primary); min-width: 70px; text-transform:uppercase;}
-  .miniBtn { margin-top: 12px; width: auto; padding: 8px 16px; font-size: 12px; }
+  
+  .sessionRow { display: flex; gap: 8px; align-items: center; margin-top: 12px; flex-wrap: wrap; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; border: 1px solid var(--border);}
+  .sessionRow input[type=text], .sessionRow input[type=date] { font-size: 12px; padding: 8px; background: rgba(255,255,255,0.05); border:none;}
+  .sessionRow .snum { font-size: 12px; font-weight: 600; color: var(--accent); min-width: 70px; text-transform:uppercase;}
+  
+  .miniBtn { margin-top: 12px; width: auto; padding: 8px 16px; font-size: 12px; background: rgba(255,255,255,0.1); box-shadow:none;}
+  .miniBtn:hover { background: rgba(255,255,255,0.2);}
+  
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
   /* Printable certificate */
   #certificate{ width:1123px; height:794px; background:#fff; position:relative; box-shadow:0 20px 60px rgba(0,0,0,.15); margin:24px auto; transform-origin:top left; border-radius:8px; overflow:hidden;}
@@ -110,155 +137,182 @@
   <div class="msg err" id="loginMsg"></div>
 </div>
 
-<div class="panel" id="app">
-  <h1>HK Workshop Admin</h1>
-  <div class="sub" id="tabRow">
-    <span class="tabBtn active" id="tabCerts">Certificates</span> &nbsp;|&nbsp;
-    <span class="tabBtn" id="tabStudents">Students</span> &nbsp;|&nbsp;
-    <span class="tabBtn" id="tabAssignments">Assignments</span> &nbsp;|&nbsp;
-    <span class="tabBtn" id="tabKiosk">Face Kiosk</span>
+<div id="app">
+  <div class="sidebar">
+    <h2>HK Workshop</h2>
+    <span class="tabBtn active" id="tabStudents">👥 Students & Attendance</span>
+    <span class="tabBtn" id="tabKiosk">📸 Face Kiosk</span>
+    <span class="tabBtn" id="tabAssignments">📝 Assignments</span>
+    <span class="tabBtn" id="tabCerts">🏆 Certificates</span>
   </div>
 
-  <div id="certGenSection">
-  <label>Link to Student (optional)</label>
-  <select id="studentPicker"><option value="">— Standalone certificate, no student account —</option></select>
+  <div class="main-area">
+    <div id="studentsSection" style="animation: fadeIn 0.3s ease;">
+      <h1>Students & Attendance</h1>
+      <div class="sub">Manage student accounts, biometrics, and manually edit attendance progress.</div>
+      
+      <div class="grid-1-2">
+        <div class="card" style="position:sticky; top:48px;">
+          <h2 style="font-size:16px; margin:0 0 16px 0; color:#fff;">Add New Student</h2>
+          <label>Full Name</label>
+          <input type="text" id="newStudentName">
+          <label>Email</label>
+          <input type="email" id="newStudentEmail">
+          <label>Password</label>
+          <input type="password" id="newStudentPassword">
+          <label>Course Title</label>
+          <input type="text" id="newStudentCourse" value="AI Tools for Everyone">
+          
+          <label>Face Biometrics (Optional)</label>
+          <div style="display:flex; gap:12px; align-items:center;">
+            <button type="button" id="startEnrollBtn" style="width:auto; margin:0; background:var(--card-bg); border:1px solid var(--border); box-shadow:none;">📸 Scan Face</button>
+            <span id="enrollStatus" style="font-size:13px; font-weight:600; color:var(--text-muted);">No face enrolled</span>
+          </div>
+          
+          <div id="enrollBox" style="display:none; margin-top:16px; background:rgba(0,0,0,0.4); border-radius:12px; padding:16px; text-align:center;">
+            <video id="enrollVideo" autoplay muted playsinline style="width:100%; border-radius:8px; transform: scaleX(-1);"></video>
+            <button type="button" id="captureFaceBtn" style="background:#10B981;">Capture & Save Descriptor</button>
+            <div id="enrollMsg" style="font-size:13px; color:#fff; margin-top:8px;"></div>
+          </div>
 
-  <label>Student Full Name</label>
-  <input type="text" id="studentName" placeholder="e.g. Priya Sharma">
-
-  <label>Course Title</label>
-  <input type="text" id="courseTitle" value="AI Tools for Everyone">
-
-  <label>Skills Covered</label>
-  <textarea id="skills">NotebookLM, AI Website Creation, Prompt Engineering, AI Image Generation, AI Video Generation, ElevenLabs, Character Generation</textarea>
-
-  <label>Completion Date</label>
-  <input type="date" id="completionDate">
-
-  <button id="genBtn" type="button">Generate Certificate</button>
-  <div class="msg" id="genMsg"></div>
-
-  <div class="out" id="out">
-    <a id="verifyLink" target="_blank"></a>
-    <button type="button" class="printBtn" id="printBtn">🖨 Print / Save as PDF</button>
-
-    <div id="certificate">
-      <svg class="corner tl" viewBox="0 0 90 90"><circle cx="8" cy="8" r="4" fill="#152238"/><line x1="8" y1="8" x2="60" y2="8" stroke="#152238" stroke-width="1.5"/><line x1="8" y1="8" x2="8" y2="60" stroke="#152238" stroke-width="1.5"/><circle cx="60" cy="8" r="3" fill="#B8923E"/><circle cx="8" cy="60" r="3" fill="#B8923E"/><line x1="8" y1="8" x2="34" y2="34" stroke="#2F6F6B" stroke-width="1"/><circle cx="34" cy="34" r="2.5" fill="#2F6F6B"/></svg>
-      <svg class="corner tr" viewBox="0 0 90 90"><circle cx="8" cy="8" r="4" fill="#152238"/><line x1="8" y1="8" x2="60" y2="8" stroke="#152238" stroke-width="1.5"/><line x1="8" y1="8" x2="8" y2="60" stroke="#152238" stroke-width="1.5"/><circle cx="60" cy="8" r="3" fill="#B8923E"/><circle cx="8" cy="60" r="3" fill="#B8923E"/><line x1="8" y1="8" x2="34" y2="34" stroke="#2F6F6B" stroke-width="1"/><circle cx="34" cy="34" r="2.5" fill="#2F6F6B"/></svg>
-      <svg class="corner bl" viewBox="0 0 90 90"><circle cx="8" cy="8" r="4" fill="#152238"/><line x1="8" y1="8" x2="60" y2="8" stroke="#152238" stroke-width="1.5"/><line x1="8" y1="8" x2="8" y2="60" stroke="#152238" stroke-width="1.5"/><circle cx="60" cy="8" r="3" fill="#B8923E"/><circle cx="8" cy="60" r="3" fill="#B8923E"/><line x1="8" y1="8" x2="34" y2="34" stroke="#2F6F6B" stroke-width="1"/><circle cx="34" cy="34" r="2.5" fill="#2F6F6B"/></svg>
-      <svg class="corner br" viewBox="0 0 90 90"><circle cx="8" cy="8" r="4" fill="#152238"/><line x1="8" y1="8" x2="60" y2="8" stroke="#152238" stroke-width="1.5"/><line x1="8" y1="8" x2="8" y2="60" stroke="#152238" stroke-width="1.5"/><circle cx="60" cy="8" r="3" fill="#B8923E"/><circle cx="8" cy="60" r="3" fill="#B8923E"/><line x1="8" y1="8" x2="34" y2="34" stroke="#2F6F6B" stroke-width="1"/><circle cx="34" cy="34" r="2.5" fill="#2F6F6B"/></svg>
-
-      <div class="inner">
-        <div class="brandrow">
-          <img src="logo_transparent.png" alt="HK Workshop Logo" class="cert-logo">
+          <button type="button" id="addStudentBtn">Create Student Account</button>
+          <div class="msg" id="addStudentMsg"></div>
         </div>
 
-        <div class="eyebrow">Certificate of Completion</div>
-        <h2 class="title" id="certCourseTitle">AI Tools for Everyone</h2>
-        <div class="subtitle">A practical, hands-on AI training program</div>
-
-        <div class="presented-to">This certifies that</div>
-        <div class="studentname" id="certStudentName">[ Student Name ]</div>
-
-        <div class="desc">
-          has successfully completed practical training on completion date <b id="certDate">[ date ]</b>,
-          demonstrating hands-on competency across the following tools and skills:
-        </div>
-
-        <div class="skills" id="certSkills"></div>
-
-        <div class="bottom">
-          <div class="block">
-            <div class="line"></div>
-            <div class="value" id="certDateBottom">[ date ]</div>
-            <div class="label">Date of Completion</div>
-          </div>
-
-          <div class="qrblock">
-            <img id="qrImg" alt="QR code">
-            <div class="qr-label">SCAN TO<br>VERIFY</div>
-          </div>
-
-          <div class="block">
-            <div class="line"></div>
-            <div class="value">Harsh</div>
-            <div class="label">Founder, HK Workshop</div>
-          </div>
+        <div>
+          <h2 style="font-size:16px; margin:0 0 16px 0; color:#fff;">Existing Students</h2>
+          <div id="studentList"></div>
         </div>
       </div>
-
-      <div class="certid">CERT ID: <span id="certIdShow"></span></div>
-    </div>
-  </div>
-  </div>
-
-  <div id="studentsSection" style="display:none;">
-    <h1 style="font-size:16px; margin-top:10px;">Add New Student</h1>
-    <label>Full Name</label>
-    <input type="text" id="newStudentName">
-    <label>Email</label>
-    <input type="email" id="newStudentEmail">
-    <label>Password</label>
-    <input type="password" id="newStudentPassword">
-    <label>Course Title</label>
-    <input type="text" id="newStudentCourse" value="AI Tools for Everyone">
-    
-    <label>Face Biometrics (Optional)</label>
-    <div style="display:flex; gap:12px; align-items:center;">
-      <button type="button" id="startEnrollBtn" style="width:auto; margin:0; background:#4F46E5;">📸 Scan Face</button>
-      <span id="enrollStatus" style="font-size:13px; font-weight:600; color:var(--text-muted);">No face enrolled</span>
-    </div>
-    
-    <div id="enrollBox" style="display:none; margin-top:16px; background:#111827; border-radius:12px; padding:16px; text-align:center;">
-      <video id="enrollVideo" autoplay muted playsinline style="width:100%; max-width:400px; border-radius:8px; transform: scaleX(-1);"></video>
-      <button type="button" id="captureFaceBtn" style="background:#10B981;">Capture & Save Descriptor</button>
-      <div id="enrollMsg" style="font-size:13px; color:#fff; margin-top:8px;"></div>
     </div>
 
-    <button type="button" id="addStudentBtn">Create Student Account</button>
-    <div class="msg" id="addStudentMsg"></div>
-
-    <h1 style="font-size:16px; margin-top:30px;">Existing Students</h1>
-    <div id="studentList"></div>
-  </div>
-
-  <div id="kioskSection" style="display:none;">
-    <h1 style="font-size:20px; margin-top:10px;">Face Recognition Kiosk</h1>
-    <p style="font-size:14px; color:var(--text-muted); line-height:1.5;">Set up a device at the door. When students walk in, the camera will recognize them and instantly mark their attendance for the active session.</p>
-    
-    <label>Active Session</label>
-    <select id="kioskSessionSelect">
-      <option value="1">Session 1</option>
-      <option value="2">Session 2</option>
-      <option value="3">Session 3</option>
-      <option value="4">Session 4</option>
-      <option value="5">Session 5</option>
-      <option value="6">Session 6</option>
-    </select>
-    
-    <button type="button" id="startKioskBtn" style="background:#4F46E5; margin-top:24px; padding:16px; font-size:16px;">🚀 Start Auto-Attendance Kiosk</button>
-    
-    <div id="kioskUI" style="display:none; margin-top:24px; position:relative; background:#0f172a; border-radius:16px; overflow:hidden; border:2px solid #334155; text-align:center;">
-      <video id="kioskVideo" autoplay muted playsinline style="width:100%; max-height:400px; object-fit:cover; transform: scaleX(-1);"></video>
-      <div id="kioskStatus" style="position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.8); color:#fff; padding:12px; font-weight:600; font-size:14px;">Initializing Models...</div>
+    <div id="kioskSection" style="display:none; animation: fadeIn 0.3s ease;">
+      <h1>Face Recognition Kiosk</h1>
+      <div class="sub">Set up a device at the door. When students walk in, the camera will recognize them and instantly mark their attendance.</div>
+      
+      <div class="card" style="max-width: 600px; margin: 0 auto; padding:32px;">
+        <label>Active Session</label>
+        <select id="kioskSessionSelect" style="font-size:16px; padding:16px;">
+          <option value="1">Session 1</option>
+          <option value="2">Session 2</option>
+          <option value="3">Session 3</option>
+          <option value="4">Session 4</option>
+          <option value="5">Session 5</option>
+          <option value="6">Session 6</option>
+        </select>
+        
+        <button type="button" id="startKioskBtn" style="margin-top:24px; padding:16px; font-size:16px;">🚀 Start Auto-Attendance Kiosk</button>
+        
+        <div id="kioskUI" style="display:none; margin-top:24px; position:relative; background:#000; border-radius:16px; overflow:hidden; border:2px solid var(--border); text-align:center;">
+          <video id="kioskVideo" autoplay muted playsinline style="width:100%; object-fit:cover; transform: scaleX(-1);"></video>
+          <div id="kioskStatus" style="position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.8); color:#fff; padding:12px; font-weight:600; font-size:14px;">Initializing Models...</div>
+        </div>
+        
+        <div id="kioskSuccessFlash" style="display:none; margin-top:24px; background:#D1FAE5; color:#065F46; padding:20px; border-radius:12px; text-align:center; font-weight:700; font-size:18px; border:1px solid #10B981; animation: fadeIn 0.2s ease;">
+          Welcome!
+        </div>
+      </div>
     </div>
-    
-    <div id="kioskSuccessFlash" style="display:none; margin-top:16px; background:#D1FAE5; color:#065F46; padding:16px; border-radius:12px; text-align:center; font-weight:700; font-size:18px; border:1px solid #10B981;">
-      Welcome!
+
+    <div id="assignmentsSection" style="display:none; animation: fadeIn 0.3s ease;">
+      <h1>Assignments & Grading</h1>
+      <div class="sub">Create new homework broadcasts and review student submissions in real-time.</div>
+      
+      <div class="grid-1-2">
+        <div class="card" style="position:sticky; top:48px;">
+          <h2 style="font-size:16px; margin:0 0 16px 0; color:#fff;">Create New Assignment</h2>
+          <label>Title</label>
+          <input type="text" id="newHwTitle" placeholder="e.g. Master Prompting">
+          <label>Description</label>
+          <textarea id="newHwDesc" placeholder="Describe what the student needs to do..."></textarea>
+          <button type="button" id="createHwBtn">Publish Assignment</button>
+          <div class="msg" id="createHwMsg"></div>
+        </div>
+
+        <div>
+          <h2 style="font-size:16px; margin:0 0 16px 0; color:#fff;">Student Submissions</h2>
+          <div id="submissionsList"></div>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <div id="assignmentsSection" style="display:none;">
-    <h1 style="font-size:16px; margin-top:10px;">Create New Assignment</h1>
-    <label>Title</label>
-    <input type="text" id="newHwTitle" placeholder="e.g. Master Prompting">
-    <label>Description</label>
-    <textarea id="newHwDesc" placeholder="Describe what the student needs to do..."></textarea>
-    <button type="button" id="createHwBtn">Publish Assignment</button>
-    <div class="msg" id="createHwMsg"></div>
+    <div id="certGenSection" style="display:none; animation: fadeIn 0.3s ease;">
+      <h1>Certificate Generator</h1>
+      <div class="sub">Manually generate customized PDF certificates.</div>
+      
+      <div class="card" style="max-width: 500px;">
+        <label>Link to Student (optional)</label>
+        <select id="studentPicker"><option value="">— Standalone certificate, no account —</option></select>
 
-    <h1 style="font-size:16px; margin-top:30px;">Student Submissions</h1>
-    <div id="submissionsList"></div>
+        <label>Student Full Name</label>
+        <input type="text" id="studentName" placeholder="e.g. Priya Sharma">
+
+        <label>Course Title</label>
+        <input type="text" id="courseTitle" value="AI Tools for Everyone">
+
+        <label>Skills Covered</label>
+        <textarea id="skills">NotebookLM, AI Website Creation, Prompt Engineering, AI Image Generation, AI Video Generation, ElevenLabs, Character Generation</textarea>
+
+        <label>Completion Date</label>
+        <input type="date" id="completionDate">
+
+        <button id="genBtn" type="button">Generate Certificate</button>
+        <div class="msg" id="genMsg"></div>
+      </div>
+
+      <div class="out" id="out">
+        <a id="verifyLink" target="_blank"></a>
+        <button type="button" class="printBtn" id="printBtn">🖨 Print / Save as PDF</button>
+
+        <div id="certificate">
+          <svg class="corner tl" viewBox="0 0 90 90"><circle cx="8" cy="8" r="4" fill="#152238"/><line x1="8" y1="8" x2="60" y2="8" stroke="#152238" stroke-width="1.5"/><line x1="8" y1="8" x2="8" y2="60" stroke="#152238" stroke-width="1.5"/><circle cx="60" cy="8" r="3" fill="#B8923E"/><circle cx="8" cy="60" r="3" fill="#B8923E"/><line x1="8" y1="8" x2="34" y2="34" stroke="#2F6F6B" stroke-width="1"/><circle cx="34" cy="34" r="2.5" fill="#2F6F6B"/></svg>
+          <svg class="corner tr" viewBox="0 0 90 90"><circle cx="8" cy="8" r="4" fill="#152238"/><line x1="8" y1="8" x2="60" y2="8" stroke="#152238" stroke-width="1.5"/><line x1="8" y1="8" x2="8" y2="60" stroke="#152238" stroke-width="1.5"/><circle cx="60" cy="8" r="3" fill="#B8923E"/><circle cx="8" cy="60" r="3" fill="#B8923E"/><line x1="8" y1="8" x2="34" y2="34" stroke="#2F6F6B" stroke-width="1"/><circle cx="34" cy="34" r="2.5" fill="#2F6F6B"/></svg>
+          <svg class="corner bl" viewBox="0 0 90 90"><circle cx="8" cy="8" r="4" fill="#152238"/><line x1="8" y1="8" x2="60" y2="8" stroke="#152238" stroke-width="1.5"/><line x1="8" y1="8" x2="8" y2="60" stroke="#152238" stroke-width="1.5"/><circle cx="60" cy="8" r="3" fill="#B8923E"/><circle cx="8" cy="60" r="3" fill="#B8923E"/><line x1="8" y1="8" x2="34" y2="34" stroke="#2F6F6B" stroke-width="1"/><circle cx="34" cy="34" r="2.5" fill="#2F6F6B"/></svg>
+          <svg class="corner br" viewBox="0 0 90 90"><circle cx="8" cy="8" r="4" fill="#152238"/><line x1="8" y1="8" x2="60" y2="8" stroke="#152238" stroke-width="1.5"/><line x1="8" y1="8" x2="8" y2="60" stroke="#152238" stroke-width="1.5"/><circle cx="60" cy="8" r="3" fill="#B8923E"/><circle cx="8" cy="60" r="3" fill="#B8923E"/><line x1="8" y1="8" x2="34" y2="34" stroke="#2F6F6B" stroke-width="1"/><circle cx="34" cy="34" r="2.5" fill="#2F6F6B"/></svg>
+
+          <div class="inner">
+            <div class="brandrow">
+              <img src="logo_transparent.png" alt="HK Workshop Logo" class="cert-logo">
+            </div>
+
+            <div class="eyebrow">Certificate of Completion</div>
+            <h2 class="title" id="certCourseTitle">AI Tools for Everyone</h2>
+            <div class="subtitle">A practical, hands-on AI training program</div>
+
+            <div class="presented-to">This certifies that</div>
+            <div class="studentname" id="certStudentName">[ Student Name ]</div>
+
+            <div class="desc">
+              has successfully completed practical training on completion date <b id="certDate">[ date ]</b>,
+              demonstrating hands-on competency across the following tools and skills:
+            </div>
+
+            <div class="skills" id="certSkills"></div>
+
+            <div class="bottom">
+              <div class="block">
+                <div class="line"></div>
+                <div class="value" id="certDateBottom">[ date ]</div>
+                <div class="label">Date of Completion</div>
+              </div>
+
+              <div class="qrblock">
+                <img id="qrImg" alt="QR code">
+                <div class="qr-label">SCAN TO<br>VERIFY</div>
+              </div>
+
+              <div class="block">
+                <div class="line"></div>
+                <div class="value">Harsh</div>
+                <div class="label">Founder, HK Workshop</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="certid">CERT ID: <span id="certIdShow"></span></div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
