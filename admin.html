@@ -849,11 +849,13 @@
         '<div class="email" style="margin-top:4px;"><input type="text" value="' + student.email + '" id="edit-email-' + student.id + '" disabled style="background:transparent;border:none;color:var(--text-muted);width:180px;font-family:inherit;"> — <input type="text" value="' + student.course_title + '" id="edit-course-' + student.id + '" disabled style="background:transparent;border:none;color:var(--text-muted);width:150px;font-family:inherit;"> — ' + attended + '/6 attended</div>' +
         '</div>' +
         '<div style="display:flex;gap:8px;">' +
+        '<button type="button" class="miniBtn" id="btn-view-' + student.id + '">View Reports</button>' +
         '<button type="button" class="miniBtn" id="btn-edit-' + student.id + '">Edit</button>' +
         '<button type="button" class="miniBtn" id="btn-deactivate-' + student.id + '" style="background:'+btnColor+';color:white;border-color:'+btnColor+';">' + btnText + '</button>' +
         '</div>';
       card.appendChild(header);
 
+      var btnView = header.querySelector('#btn-view-' + student.id);
       var btnEdit = header.querySelector('#btn-edit-' + student.id);
       var btnDeactivate = header.querySelector('#btn-deactivate-' + student.id);
       var inputName = header.querySelector('#edit-name-' + student.id);
@@ -915,6 +917,22 @@
         }
       });
 
+      var detailsContainer = document.createElement('div');
+      detailsContainer.style.display = "none";
+      detailsContainer.style.marginTop = "16px";
+      detailsContainer.style.borderTop = "1px solid var(--border)";
+      detailsContainer.style.paddingTop = "16px";
+
+      btnView.addEventListener('click', function(){
+         if(detailsContainer.style.display === "none") {
+            detailsContainer.style.display = "block";
+            btnView.textContent = "Hide Reports";
+         } else {
+            detailsContainer.style.display = "none";
+            btnView.textContent = "View Reports";
+         }
+      });
+
       (sessions || []).forEach(function(sess){
         var row = document.createElement('div');
         row.className = "sessionRow";
@@ -925,7 +943,7 @@
           '<input type="text" data-field="topics_covered" placeholder="Topics covered" value="' + (sess.topics_covered ? sess.topics_covered.replace(/"/g,'&quot;') : '') + '" style="flex:1;min-width:140px;">' +
           '<input type="text" data-field="notes" placeholder="Notes" value="' + (sess.notes ? sess.notes.replace(/"/g,'&quot;') : '') + '" style="flex:1;min-width:140px;">';
         row.setAttribute('data-session-id', sess.id);
-        card.appendChild(row);
+        detailsContainer.appendChild(row);
       });
 
       var saveBtn = document.createElement('button');
@@ -935,7 +953,8 @@
       saveBtn.addEventListener('click', function(){
         saveStudentProgress(card, token, saveBtn);
       });
-      card.appendChild(saveBtn);
+      detailsContainer.appendChild(saveBtn);
+      card.appendChild(detailsContainer);
 
       container.appendChild(card);
     });
