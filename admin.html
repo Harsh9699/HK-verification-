@@ -445,11 +445,15 @@
     fetch(SUPABASE_URL + "/rest/v1/students?select=*", {
       headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + token }
     })
-    .then(function(res){ return res.json(); })
+    .then(function(res){ 
+      if (!res.ok) throw new Error("API Error");
+      return res.json(); 
+    })
     .then(function(rows){
+      if (!Array.isArray(rows)) return;
       var picker = document.getElementById('studentPicker');
       picker.innerHTML = '<option value="">— Standalone certificate, no student account —</option>';
-      (rows || []).forEach(function(s){
+      rows.forEach(function(s){
         var o = document.createElement('option');
         o.value = s.id;
         o.textContent = s.full_name + " (" + s.email + ")";
@@ -807,12 +811,23 @@
     fetch(SUPABASE_URL + "/rest/v1/students?select=*", {
       headers: { "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + token }
     })
-    .then(function(res){ return res.json(); })
+    .then(function(res){ 
+      if (!res.ok) {
+        return res.json().then(err => { throw new Error(err.message || err.error_description || JSON.stringify(err)); });
+      }
+      return res.json(); 
+    })
     .then(function(students){
-      if (!students || students.length === 0){
+      if (!Array.isArray(students)) {
+        throw new Error("Invalid server response: " + JSON.stringify(students));
+      }
+      if (students.length === 0){
         listEl.innerHTML = "No students yet.";
         return;
       }
+      // Sort active first
+      students.sort((a,b) => (a.active === false ? 1 : 0) - (b.active === false ? 1 : 0));
+      
       listEl.innerHTML = "";
       students.forEach(function(s){
         fetchAndRenderStudentCard(s, listEl, token);
