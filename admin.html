@@ -739,9 +739,17 @@
         var sName = studentMap[sub.student_id] || "Unknown Student";
         var aTitle = hwMap[sub.assignment_id] || "Unknown Assignment";
         
+        var subText = sub.submission_link || "";
+        var linkHtml = "";
+        if(subText.startsWith("http://") || subText.startsWith("https://")) {
+           linkHtml = '<a href="' + subText + '" target="_blank" style="font-size:14px;color:var(--primary);font-weight:600;">View Homework ↗</a>';
+        } else {
+           linkHtml = '<div style="font-size:13px; color:var(--text-main); background:#fff; padding:8px; border-radius:4px; border:1px solid var(--border); max-height:80px; overflow-y:auto; font-family:monospace;">' + subText.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div>';
+        }
+
         div.innerHTML = 
           '<div style="font-weight:600;">' + sName + ' <span style="font-weight:400;color:var(--text-muted);">submitted</span> ' + aTitle + '</div>' +
-          '<div style="margin-top:8px;"><a href="' + sub.submission_link + '" target="_blank" style="font-size:14px;color:var(--primary);font-weight:600;">View Homework ↗</a></div>' +
+          '<div style="margin-top:8px; width:100%;">' + linkHtml + '</div>' +
           '<div style="margin-top:8px; display:flex; gap:8px; align-items:center; width:100%;">' +
           '<select id="status-' + sub.id + '" style="width:140px; padding:6px; font-size:13px;"><option value="submitted" '+(sub.status==='submitted'?'selected':'')+'>Submitted</option><option value="graded" '+(sub.status==='graded'?'selected':'')+'>Graded</option></select>' +
           '<input type="text" id="notes-' + sub.id + '" placeholder="Feedback notes..." value="' + (sub.grade_notes || '') + '" style="flex:1; padding:6px; font-size:13px;">' +

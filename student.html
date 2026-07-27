@@ -538,15 +538,22 @@
         var formHtml = "";
         if(!sub) {
            formHtml = '<div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">' +
-             '<label>Submission Link (e.g. Google Doc)</label>' +
+             '<label>Submission Link or Text</label>' +
              '<div style="display:flex; gap:12px;">' +
-               '<input type="text" placeholder="https://docs.google.com/..." id="hwLink-' + hw.id + '">' +
+               '<input type="text" placeholder="https://docs.google.com/... or type your answer here" id="hwLink-' + hw.id + '">' +
                '<button style="width: auto; margin:0; padding: 0 24px;" id="submitHwBtn-' + hw.id + '">Submit</button>' +
              '</div>' +
              '<div class="msg" id="msg-' + hw.id + '" style="text-align:left;"></div>' +
            '</div>';
         } else {
-           formHtml = '<div style="margin-top:16px; font-size:14px;"><a href="' + sub.submission_link + '" target="_blank" style="color:var(--primary); font-weight:600;">View your submission ↗</a></div>';
+           var subText = sub.submission_link || "";
+           var linkHtml = "";
+           if(subText.startsWith("http://") || subText.startsWith("https://")) {
+              linkHtml = '<a href="' + subText + '" target="_blank" style="color:var(--primary); font-weight:600;">View your submission ↗</a>';
+           } else {
+              linkHtml = '<div style="font-size:13px; color:var(--text-main); background:#f9fafb; padding:8px; border-radius:4px; border:1px solid var(--border); max-height:80px; overflow-y:auto; font-family:monospace;">' + subText.replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</div>';
+           }
+           formHtml = '<div style="margin-top:16px; font-size:14px;">' + linkHtml + '</div>';
         }
         
         div.innerHTML = statusHtml + '<h3 style="margin-top:0;">' + hw.title + '</h3><p style="font-size:14px; color:var(--text-muted); line-height:1.5; margin-bottom:0;">' + hw.description.replace(/\n/g, '<br>') + '</p>' + formHtml;
