@@ -113,7 +113,8 @@
   <h1>HK Workshop Admin</h1>
   <div class="sub" id="tabRow">
     <span class="tabBtn active" id="tabCerts">Certificates</span> &nbsp;|&nbsp;
-    <span class="tabBtn" id="tabStudents">Students</span>
+    <span class="tabBtn" id="tabStudents">Students</span> &nbsp;|&nbsp;
+    <span class="tabBtn" id="tabAssignments">Assignments</span>
   </div>
 
   <div id="certGenSection">
@@ -205,6 +206,19 @@
     <h1 style="font-size:16px; margin-top:30px;">Existing Students</h1>
     <div id="studentList"></div>
   </div>
+
+  <div id="assignmentsSection" style="display:none;">
+    <h1 style="font-size:16px; margin-top:10px;">Create New Assignment</h1>
+    <label>Title</label>
+    <input type="text" id="newHwTitle" placeholder="e.g. Master Prompting">
+    <label>Description</label>
+    <textarea id="newHwDesc" placeholder="Describe what the student needs to do..."></textarea>
+    <button type="button" id="createHwBtn">Publish Assignment</button>
+    <div class="msg" id="createHwMsg"></div>
+
+    <h1 style="font-size:16px; margin-top:30px;">Student Submissions</h1>
+    <div id="submissionsList"></div>
+  </div>
 </div>
 
 <script>
@@ -244,15 +258,28 @@
   document.getElementById('tabCerts').addEventListener('click', function(){
     document.getElementById('certGenSection').style.display = 'block';
     document.getElementById('studentsSection').style.display = 'none';
+    document.getElementById('assignmentsSection').style.display = 'none';
     document.getElementById('tabCerts').className = 'tabBtn active';
     document.getElementById('tabStudents').className = 'tabBtn';
+    document.getElementById('tabAssignments').className = 'tabBtn';
   });
   document.getElementById('tabStudents').addEventListener('click', function(){
     document.getElementById('certGenSection').style.display = 'none';
     document.getElementById('studentsSection').style.display = 'block';
+    document.getElementById('assignmentsSection').style.display = 'none';
     document.getElementById('tabStudents').className = 'tabBtn active';
     document.getElementById('tabCerts').className = 'tabBtn';
+    document.getElementById('tabAssignments').className = 'tabBtn';
     loadStudentList();
+  });
+  document.getElementById('tabAssignments').addEventListener('click', function(){
+    document.getElementById('certGenSection').style.display = 'none';
+    document.getElementById('studentsSection').style.display = 'none';
+    document.getElementById('assignmentsSection').style.display = 'block';
+    document.getElementById('tabAssignments').className = 'tabBtn active';
+    document.getElementById('tabCerts').className = 'tabBtn';
+    document.getElementById('tabStudents').className = 'tabBtn';
+    loadAssignmentsAdmin();
   });
 
   // If already logged in this session, skip straight to the generator
@@ -650,6 +677,90 @@
       .then(function(){ btn.textContent = "Saved ✓"; setTimeout(function(){ btn.textContent = "Save Progress"; }, 1500); })
       .catch(function(err){ btn.textContent = "Error: " + err.message; });
   }
+
+  // --- Assignments ---
+  document.getElementById('createHwBtn').addEventListener('click', function(){
+    var msg = document.getElementById('createHwMsg');
+    var title = document.getElementById('newHwTitle').value.trim();
+    var desc = document.getElementById('newHwDesc').value.trim();
+    if(!title || !desc) { msg.className="msg err"; msg.textContent="Title and description required."; return; }
+    msg.className="msg"; msg.textContent="Publishing...";
+    fetch(SUPABASE_URL + "/rest/v1/homework_assignments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + getSession() },
+      body: JSON.stringify({ title: title, description: desc })
+    }).then(function(res){
+      if(res.ok) {
+        msg.className="msg ok"; msg.textContent="Published!";
+        document.getElementById('newHwTitle').value='';
+        document.getElementById('newHwDesc').value='';
+        setTimeout(function(){ msg.textContent=''; }, 2000);
+        loadAssignmentsAdmin();
+      } else {
+        msg.className="msg err"; msg.textContent="Failed to publish.";
+      }
+    });
+  });
+
+  function loadAssignmentsAdmin() {
+    var token = getSession();
+    var list = document.getElementById('submissionsList');
+    list.innerHTML = "Loading...";
+
+    Promise.all([
+      fetch(SUPABASE_URL + "/rest/v1/homework_assignments?order=created_at.desc", {headers:{"apikey":SUPABASE_ANON_KEY,"Authorization":"Bearer "+token}}).then(r=>r.json()),
+      fetch(SUPABASE_URL + "/rest/v1/homework_submissions?order=submitted_at.desc", {headers:{"apikey":SUPABASE_ANON_KEY,"Authorization":"Bearer "+token}}).then(r=>r.json()),
+      fetch(SUPABASE_URL + "/rest/v1/students?select=id,full_name", {headers:{"apikey":SUPABASE_ANON_KEY,"Authorization":"Bearer "+token}}).then(r=>r.json())
+    ]).then(function(results){
+      var assignments = results[0] || [];
+      var submissions = results[1] || [];
+      var students = results[2] || [];
+      
+      var studentMap = {};
+      students.forEach(s => studentMap[s.id] = s.full_name);
+      var hwMap = {};
+      assignments.forEach(a => hwMap[a.id] = a.title);
+
+      if(submissions.length === 0) { list.innerHTML = "No submissions yet."; return; }
+      list.innerHTML = "";
+      
+      submissions.forEach(function(sub){
+        var div = document.createElement('div');
+        div.className = "sessionRow";
+        div.style.flexDirection = "column";
+        div.style.alignItems = "flex-start";
+        var sName = studentMap[sub.student_id] || "Unknown Student";
+        var aTitle = hwMap[sub.assignment_id] || "Unknown Assignment";
+        
+        div.innerHTML = 
+          '<div style="font-weight:600;">' + sName + ' <span style="font-weight:400;color:var(--text-muted);">submitted</span> ' + aTitle + '</div>' +
+          '<div style="margin-top:8px;"><a href="' + sub.submission_link + '" target="_blank" style="font-size:14px;color:var(--primary);font-weight:600;">View Homework ↗</a></div>' +
+          '<div style="margin-top:8px; display:flex; gap:8px; align-items:center; width:100%;">' +
+          '<select id="status-' + sub.id + '" style="width:140px; padding:6px; font-size:13px;"><option value="submitted" '+(sub.status==='submitted'?'selected':'')+'>Submitted</option><option value="graded" '+(sub.status==='graded'?'selected':'')+'>Graded</option></select>' +
+          '<input type="text" id="notes-' + sub.id + '" placeholder="Feedback notes..." value="' + (sub.grade_notes || '') + '" style="flex:1; padding:6px; font-size:13px;">' +
+          '<button type="button" class="miniBtn" style="margin:0;" id="saveSub-' + sub.id + '">Save</button>' +
+          '</div>';
+          
+        list.appendChild(div);
+        
+        div.querySelector('#saveSub-'+sub.id).addEventListener('click', function(){
+          var btn = this;
+          btn.textContent = "...";
+          var newStatus = document.getElementById('status-'+sub.id).value;
+          var newNotes = document.getElementById('notes-'+sub.id).value;
+          fetch(SUPABASE_URL + "/rest/v1/homework_submissions?id=eq."+sub.id, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json", "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + token },
+            body: JSON.stringify({ status: newStatus, grade_notes: newNotes })
+          }).then(function(r){
+            if(r.ok){ btn.textContent="Saved ✓"; setTimeout(()=>btn.textContent="Save",1500); }
+            else { btn.textContent="Error"; }
+          });
+        });
+      });
+    }).catch(function(err){ list.innerHTML = "Error: " + err.message; });
+  }
+
 })();
 </script>
 

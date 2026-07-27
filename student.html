@@ -277,24 +277,8 @@
         <h1>Assignments</h1>
         <div class="sub">Apply what you learned</div>
         
-        <div class="hw-card">
-          <div class="hw-status">Pending Submission</div>
-          <h3>Assignment 1: Master Prompting</h3>
-          <p style="font-size:14px; color:var(--text-muted); line-height:1.5;">Create 5 advanced prompts using the framework taught in Session 1. Paste your Google Doc link below for review.</p>
-          
-          <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
-            <label>Submission Link</label>
-            <div style="display:flex; gap:12px;">
-              <input type="text" placeholder="https://docs.google.com/..." id="hwLink">
-              <button style="width: auto; margin:0; padding: 0 24px;" id="submitHwBtn">Submit</button>
-            </div>
-          </div>
-        </div>
-        
-        <div class="hw-card">
-          <div class="hw-status done">✓ Graded</div>
-          <h3>Pre-Course Setup</h3>
-          <p style="font-size:14px; color:var(--text-muted);">Create accounts on ChatGPT, Midjourney, and NotebookLM.</p>
+        <div id="assignmentsList">
+          <div style="color:var(--text-muted); font-size:14px;">Loading assignments...</div>
         </div>
       </div>
       
@@ -358,13 +342,7 @@
     });
   });
 
-  // Homework Submit Mock
-  document.getElementById('submitHwBtn').addEventListener('click', function(){
-    if(!document.getElementById('hwLink').value) return alert('Please paste a link first!');
-    this.textContent = "Submitted ✓";
-    this.style.background = "#10B981";
-    setTimeout(() => { alert("Success! Your homework was sent to the instructor. (Note: Frontend UI demo)"); }, 300);
-  });
+
 
   // Login
   document.getElementById('loginBtn').addEventListener('click', function(){
@@ -528,6 +506,70 @@
         document.getElementById('certLink').href = SITE_URL + "/verify.html?id=" + certs[0].cert_id;
       }
     });
+
+    // Assignments & Submissions
+    Promise.all([
+      fetch(SUPABASE_URL + "/rest/v1/homework_assignments?order=created_at.desc", {headers:{"apikey":SUPABASE_ANON_KEY,"Authorization":"Bearer "+token}}).then(r=>r.json()),
+      fetch(SUPABASE_URL + "/rest/v1/homework_submissions?student_id=eq."+uid, {headers:{"apikey":SUPABASE_ANON_KEY,"Authorization":"Bearer "+token}}).then(r=>r.json())
+    ]).then(function(results){
+      var assignments = results[0] || [];
+      var submissions = results[1] || [];
+      var list = document.getElementById('assignmentsList');
+      if(assignments.length === 0) { list.innerHTML = "<div style='color:var(--text-muted); font-size:14px;'>No assignments published yet.</div>"; return; }
+      
+      var subMap = {};
+      submissions.forEach(function(s){ subMap[s.assignment_id] = s; });
+      
+      list.innerHTML = "";
+      assignments.forEach(function(hw){
+        var sub = subMap[hw.id];
+        var div = document.createElement('div');
+        div.className = "hw-card";
+        
+        var statusHtml = "";
+        if(sub) {
+           if(sub.status === 'graded') {
+              statusHtml = '<div class="hw-status done" style="margin-bottom:8px;">✓ Graded' + (sub.grade_notes ? ' — Feedback: ' + sub.grade_notes : '') + '</div>';
+           } else {
+              statusHtml = '<div class="hw-status" style="margin-bottom:8px;">Submitted (Pending Review)</div>';
+           }
+        }
+        
+        var formHtml = "";
+        if(!sub) {
+           formHtml = '<div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">' +
+             '<label>Submission Link (e.g. Google Doc)</label>' +
+             '<div style="display:flex; gap:12px;">' +
+               '<input type="text" placeholder="https://docs.google.com/..." id="hwLink-' + hw.id + '">' +
+               '<button style="width: auto; margin:0; padding: 0 24px;" id="submitHwBtn-' + hw.id + '">Submit</button>' +
+             '</div>' +
+             '<div class="msg" id="msg-' + hw.id + '" style="text-align:left;"></div>' +
+           '</div>';
+        } else {
+           formHtml = '<div style="margin-top:16px; font-size:14px;"><a href="' + sub.submission_link + '" target="_blank" style="color:var(--primary); font-weight:600;">View your submission ↗</a></div>';
+        }
+        
+        div.innerHTML = statusHtml + '<h3 style="margin-top:0;">' + hw.title + '</h3><p style="font-size:14px; color:var(--text-muted); line-height:1.5; margin-bottom:0;">' + hw.description.replace(/\n/g, '<br>') + '</p>' + formHtml;
+        list.appendChild(div);
+        
+        if(!sub) {
+           document.getElementById('submitHwBtn-'+hw.id).addEventListener('click', function(){
+              var link = document.getElementById('hwLink-'+hw.id).value.trim();
+              var msg = document.getElementById('msg-'+hw.id);
+              if(!link) { msg.className="msg err"; msg.textContent="Please paste a link."; return; }
+              this.textContent = "...";
+              fetch(SUPABASE_URL + "/rest/v1/homework_submissions", {
+                 method: "POST",
+                 headers: { "Content-Type": "application/json", "apikey": SUPABASE_ANON_KEY, "Authorization": "Bearer " + token },
+                 body: JSON.stringify({ assignment_id: hw.id, student_id: uid, submission_link: link })
+              }).then(r => {
+                 if(r.ok) { loadDashboard(); } // reload to show submitted status
+                 else { msg.className="msg err"; msg.textContent="Failed to submit."; this.textContent="Submit"; }
+              });
+           });
+        }
+      });
+    }).catch(e => console.error("HW fetch error:", e));
   }
 
   // Load Community
