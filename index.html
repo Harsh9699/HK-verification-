@@ -203,9 +203,44 @@
     .day-item { flex-direction: column; gap: 12px; padding: 20px; }
     .day-num { width: fit-content; min-width: 0; }
   }
+
+  /* Preloader */
+  .preloader { position: fixed; inset: 0; z-index: 9999; background: #0f172a; display: flex; align-items: center; justify-content: center; transition: opacity 0.6s ease, visibility 0.6s ease; }
+  .preloader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+  body.loading { overflow: hidden; }
+  
+  .laptop-container { animation: zoomIntoLaptop 2.4s cubic-bezier(0.65, 0, 0.35, 1) forwards; animation-delay: 0.6s; transform-origin: center center; }
+  .laptop { width: 300px; display: flex; flex-direction: column; align-items: center; perspective: 800px; transform: rotateX(5deg); }
+  .laptop-screen { width: 280px; height: 180px; background: #1e293b; border-radius: 12px 12px 0 0; border: 8px solid #334155; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 -5px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(255,255,255,0.05); }
+  .laptop-display { position: absolute; inset: 0; background: radial-gradient(circle at 50% 50%, #1e293b, #0f172a); display: flex; align-items: center; justify-content: center; }
+  .hk-logo-preloader { font-size: 56px; font-weight: 800; color: #fff; font-family: 'Outfit', sans-serif; letter-spacing: -2px; text-shadow: 0 0 20px rgba(255,255,255,0.6); animation: glowText 2s ease-in-out infinite alternate; }
+  .laptop-base { width: 340px; height: 16px; background: #64748b; border-radius: 2px 2px 16px 16px; position: relative; box-shadow: 0 15px 30px rgba(0,0,0,0.6); border-top: 1px solid #cbd5e1; }
+  .laptop-base::after { content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 50px; height: 3px; background: #cbd5e1; border-radius: 0 0 4px 4px; }
+  
+  @keyframes glowText { 0% { text-shadow: 0 0 10px rgba(255,255,255,0.3); } 100% { text-shadow: 0 0 30px rgba(255,255,255,0.8), 0 0 50px rgba(255,255,255,0.4); } }
+  @keyframes zoomIntoLaptop {
+    0% { transform: scale(1) translateY(0); opacity: 1; }
+    20% { transform: scale(0.9) translateY(10px); opacity: 1; }
+    80% { opacity: 1; }
+    100% { transform: scale(30) translateY(10px); opacity: 0; }
+  }
 </style>
 </head>
-<body>
+<body class="loading">
+
+<!-- Preloader -->
+<div id="preloader" class="preloader">
+  <div class="laptop-container">
+    <div class="laptop">
+      <div class="laptop-screen">
+        <div class="laptop-display">
+          <span class="hk-logo-preloader">HK</span>
+        </div>
+      </div>
+      <div class="laptop-base"></div>
+    </div>
+  </div>
+</div>
 
 <header>
   <a href="#" class="logo">HK <span>Workshop</span></a>
@@ -638,6 +673,14 @@
 </footer>
 
 <script>
+  // Preloader Logic
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.getElementById('preloader').classList.add('hidden');
+      document.body.classList.remove('loading');
+    }, 2800);
+  });
+
   // Modal Logic
   function openModal(id) {
     var modal = document.getElementById(id);
